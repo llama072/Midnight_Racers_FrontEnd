@@ -1,0 +1,228 @@
+:root {
+  font-family: system-ui, Avenir, Helvetica, Arial, sans-serif;
+  line-height: 1.5;
+  font-weight: 400;
+  color-scheme: light dark;
+  color: rgba(255, 255, 255, 0.87);
+  background-color: #242424;
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Alap resetek */
+body {
+  margin: 0;
+  min-width: 320px;
+  min-height: 100vh;
+  background-color: black;
+  color: white;
+  overflow: hidden;
+}
+
+a {
+  font-weight: 500;
+  text-decoration: none;
+  transition: 0.3s;
+}
+
+/* --- ASZTALI NAVBAR STÍLUSOK --- */
+.navbar-container {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 20px 50px;
+  width: 100%;
+  position: absolute;
+  top: 0;
+  left: 0;
+  z-index: 100;
+  box-sizing: border-box;
+}
+
+/* Logó és Gomb szekciók előrehozása */
+.nav-logo-section {
+    flex-shrink: 0; /* Ne engedd, hogy összenyomják */
+    display: flex;
+    align-items: center;
+}
+
+.nav-logo-section img {
+    height: 60px; /* Itt állíts be egy jóval nagyobb értéket (pl. 60-80px) */
+    width: auto;
+    object-fit: contain;
+}
+
+.nav-links-wrapper {
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  justify-content: center;
+  transition: 0.5s ease-in-out;
+  /* Asztali gépen ne takarja el a kattintásokat a széleken */
+  pointer-events: none;
+}
+
+.nav-links-container {
+  display: flex;
+  justify-content: center;
+  gap: 35px;
+  background-color: rgba(255, 255, 255, 0.1);
+  padding: 10px 30px;
+  border-radius: 50px;
+  backdrop-filter: blur(5px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  pointer-events: auto; /* A menüpontok újra kattinthatóak */
+}
+
+.nav-item {
+  color: white;
+  font-size: 14px;
+  font-weight: bold;
+  letter-spacing: 2px;
+}
+
+.nav-item:hover {
+  color: #102150;
+}
+
+.hamburger-icon {
+  display: none;
+  cursor: pointer;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.bar {
+  width: 30px;
+  height: 3px;
+  background-color: white;
+  transition: 0.3s;
+}
+
+/* --- GÖRGETÉS ÉS KÁRTYA --- */
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+.card-container {
+  display: flex;
+  flex-direction: row;
+  align-items: flex-start;
+}
+
+/* --- MOBIL NÉZET (1000px alatt) --- */
+@media (max-width: 1000px) {
+  .desktop-login {
+    display: none !important; /* Mobilon elrejtjük a gombot */
+  }
+
+  .hamburger-icon {
+    display: flex;
+    z-index: 1100;
+  }
+
+  .nav-links-wrapper {
+    position: fixed;
+    top: 0;
+    right: -100%;
+    left: auto;
+    transform: none;
+    width: 100%;
+    height: 100vh;
+    background: rgba(0, 0, 0, 0.95);
+    backdrop-filter: blur(10px);
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+    pointer-events: auto; /* Mobilon kell az eseménykezelés */
+  }
+
+  .nav-links-wrapper.open {
+    right: 0;
+  }
+
+  .nav-links-container {
+    flex-direction: column;
+    background: none;
+    border: none;
+    backdrop-filter: none;
+    gap: 50px;
+    align-items: center;
+  }
+
+  .nav-item {
+    font-size: 2.2rem !important;
+    letter-spacing: 5px;
+    text-align: center;
+  }
+
+  h1.main-title {
+    margin-top: 10px !important; /* Megemeltem, hogy ne lógjon bele a logóba */
+    font-size: 2.2rem !important;
+    margin-bottom: 20px !important;
+  }
+
+  .card-container {
+    flex-direction: column !important;
+    align-items: center !important;
+    gap: 20px !important;
+    margin-top: 0px !important;
+  }
+
+  /* Hamburger X animáció */
+  .bar.active:nth-child(1) { transform: translateY(9px) rotate(45deg); }
+  .bar.active:nth-child(2) { opacity: 0; }
+  .bar.active:nth-child(3) { transform: translateY(-9px) rotate(-45deg); }
+}
+
+.login-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 20px;
+  width: 100%;
+}
+
+/* INPUT DESIGN */
+.glass-input {
+  width: 260px;
+  padding: 12px 18px;
+  border-radius: 12px;
+  border: 1px solid rgba(255,255,255,0.4);
+  background: rgba(255,255,255,0.08);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+  color: white;
+  outline: none;
+  transition: 0.3s ease;
+  text-align: center;
+}
+
+.glass-input::placeholder {
+  color: rgba(255,255,255,0.7);
+  text-align: center;
+}
+
+.glass-input:focus {
+  border: 1px solid rgba(255,255,255,0.8);
+  background: rgba(255,255,255,0.15);
+  transform: scale(1.03);
+}
+
+/* Ez minden TextBox placeholderét fehérre színezi */
+.form-control::placeholder {
+  color: rgba(255, 255, 255, 0.6) !important;
+}
+
+/* Ez pedig a gépelt szöveget biztosítja be */
+.form-control {
+  color: white !important;
+}
