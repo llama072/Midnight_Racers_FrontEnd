@@ -1,134 +1,108 @@
-:root {
-  font-family: system-ui, Avenir, Helvetica, Arial, sans-serif;
-  line-height: 1.5;
-  font-weight: 400;
-  color-scheme: light dark;
-  color: rgba(255, 255, 255, 0.87);
-  background-color: #242424;
-  font-synthesis: none;
-  text-rendering: optimizeLegibility;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-}
-
-/* Alap resetek */
 body {
   margin: 0;
-  min-width: 320px;
-  min-height: 100vh;
   background-color: black;
   color: white;
-  overflow: hidden;
+  overflow-x: hidden;
 }
 
-a {
-  font-weight: 500;
-  text-decoration: none;
-  transition: 0.3s;
+/* Minden aláhúzás eltávolítása globálisan */
+a, .nav-link, .dropdown-item {
+  text-decoration: none !important;
 }
 
-/* --- ASZTALI NAVBAR STÍLUSOK --- */
-.navbar-container {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 20px 50px;
-  width: 100%;
-  position: absolute;
-  top: 0;
-  left: 0;
-  z-index: 100;
-  box-sizing: border-box;
-}
-
-/* Logó és Gomb szekciók előrehozása */
-.nav-logo-section {
-    flex-shrink: 0; /* Ne engedd, hogy összenyomják */
-    display: flex;
-    align-items: center;
-}
-
-.nav-logo-section img {
-    height: 60px; /* Itt állíts be egy jóval nagyobb értéket (pl. 60-80px) */
-    width: auto;
-    object-fit: contain;
-}
-
+/* KÖZÉPSŐ MENÜ EGYEDI STÍLUSA */
 .nav-links-wrapper {
   position: absolute;
   left: 50%;
-  transform: translateX(-50%);
-  display: flex;
-  justify-content: center;
-  transition: 0.5s ease-in-out;
-  /* Asztali gépen ne takarja el a kattintásokat a széleken */
-  pointer-events: none;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 1000;
 }
-
-.nav-links-container {
-  display: flex;
-  justify-content: center;
-  gap: 35px;
-  background-color: rgba(255, 255, 255, 0.1);
-  padding: 10px 30px;
-  border-radius: 50px;
-  backdrop-filter: blur(5px);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  pointer-events: auto; /* A menüpontok újra kattinthatóak */
-}
-
-.nav-item {
-  color: white;
-  font-size: 14px;
-  font-weight: bold;
-  letter-spacing: 2px;
-}
-
-.nav-item:hover {
-  color: #102150;
-}
-
-.hamburger-icon {
-  display: none;
-  cursor: pointer;
-  flex-direction: column;
-  gap: 6px;
-}
-
-.bar {
-  width: 30px;
-  height: 3px;
-  background-color: white;
-  transition: 0.3s;
-}
-
-/* --- GÖRGETÉS ÉS KÁRTYA --- */
-.no-scrollbar::-webkit-scrollbar {
-  display: none;
-}
-
-.no-scrollbar {
-  -ms-overflow-style: none;
-  scrollbar-width: none;
+/* Alaphelyzetben (amikor zárva a menü) az X gomb legyen rejtve */
+.nav-links-wrapper .btn-close {
+  display: none !important;
 }
 
 .card-container {
   display: flex;
   flex-direction: row;
-  align-items: flex-start;
+  justify-content: center;
+  gap: 30px;
+  padding: 20px;
+  width: 100%;
 }
 
-/* --- MOBIL NÉZET (1000px alatt) --- */
+
+/* Ez a rész felel a placeholder színéért minden böngészőben */
+input::placeholder {
+  color: rgba(255, 255, 255, 0.8) !important; /* Majdnem tiszta fehér */
+  opacity: 1 !important; /* Firefox miatt kell */
+}
+
+/* Ha biztosra akarsz menni a TextBox-odnál */
+.form-control::placeholder {
+  color: white !important;
+}
+
+/* MOBIL NÉZET (1000px alatt): Egymás alá kerülnek */
 @media (max-width: 1000px) {
-  .desktop-login {
-    display: none !important; /* Mobilon elrejtjük a gombot */
+  .card-container {
+      flex-direction: column !important; /* Egymás alá kényszeríti őket */
+      align-items: center !important;
+      gap: 20px !important;
+      margin-top: 20px !important;
   }
 
-  .hamburger-icon {
-    display: flex;
-    z-index: 1100;
+  /* Biztosítjuk, hogy a kártyák ne legyenek túl szélesek mobilon */
+  .card-container > div {
+      width: 90% !important;
+      max-width: 400px;
   }
+}
+/* Csak akkor jelenjen meg az X, ha a wrapper megkapja az .open osztályt */
+.nav-links-wrapper.open .btn-close {
+  display: block !important;
+  position: fixed;
+  top: 30px;
+  right: 30px;
+  z-index: 3001;
+  filter: invert(1) brightness(200%);
+  opacity: 1 !important;
+}
+.pill-blur {
+  background: rgba(255, 255, 255, 0.08);
+  backdrop-filter: blur(15px);
+  border-radius: 50px;
+  padding: 8px 25px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
 
+.nav-link {
+    letter-spacing: 1.5px;
+    font-size: 14px;
+    transition: 0.3s;
+}
+
+.nav-link:hover {
+    color: #8898f0 !important;
+}
+
+/* PROFIL GOMB */
+.user-pill-btn {
+  background: rgba(255, 255, 255, 0.1) !important;
+  backdrop-filter: blur(10px);
+  border-radius: 50px !important;
+  padding: 10px 25px !important;
+}
+
+/* DROPDOWN */
+.custom-black-dropdown {
+  background-color: rgba(0, 0, 0, 0.95) !important;
+  border-radius: 12px !important;
+}
+
+/* MOBIL HAMBURGER & MENÜ */
+@media (max-width: 991px) {
   .nav-links-wrapper {
     position: fixed;
     top: 0;
@@ -137,92 +111,21 @@ a {
     transform: none;
     width: 100%;
     height: 100vh;
-    background: rgba(0, 0, 0, 0.95);
-    backdrop-filter: blur(10px);
+    background: black;
+    display: flex;
     justify-content: center;
     align-items: center;
-    z-index: 1000;
-    pointer-events: auto; /* Mobilon kell az eseménykezelés */
+    transition: 0.4s;
   }
-
-  .nav-links-wrapper.open {
-    right: 0;
-  }
-
-  .nav-links-container {
-    flex-direction: column;
-    background: none;
-    border: none;
-    backdrop-filter: none;
-    gap: 50px;
-    align-items: center;
-  }
-
-  .nav-item {
-    font-size: 2.2rem !important;
-    letter-spacing: 5px;
-    text-align: center;
-  }
-
-  h1.main-title {
-    margin-top: 10px !important; /* Megemeltem, hogy ne lógjon bele a logóba */
-    font-size: 2.2rem !important;
-    margin-bottom: 20px !important;
-  }
-
-  .card-container {
-    flex-direction: column !important;
-    align-items: center !important;
-    gap: 20px !important;
-    margin-top: 0px !important;
-  }
-
-  /* Hamburger X animáció */
-  .bar.active:nth-child(1) { transform: translateY(9px) rotate(45deg); }
-  .bar.active:nth-child(2) { opacity: 0; }
-  .bar.active:nth-child(3) { transform: translateY(-9px) rotate(-45deg); }
+  .nav-links-wrapper.open { right: 0; }
+  .pill-blur { flex-direction: column; background: none; border: none; gap: 30px; }
+  .nav-link { font-size: 2rem !important; }
 }
 
-.login-content {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 20px;
-  width: 100%;
-}
+.hamburger-icon { flex-direction: column; gap: 6px; }
+.bar { width: 30px; height: 3px; background-color: white; transition: 0.3s; }
 
-/* INPUT DESIGN */
-.glass-input {
-  width: 260px;
-  padding: 12px 18px;
-  border-radius: 12px;
-  border: 1px solid rgba(255,255,255,0.4);
-  background: rgba(255,255,255,0.08);
-  backdrop-filter: blur(6px);
-  -webkit-backdrop-filter: blur(6px);
-  color: white;
-  outline: none;
-  transition: 0.3s ease;
-  text-align: center;
-}
-
-.glass-input::placeholder {
-  color: rgba(255,255,255,0.7);
-  text-align: center;
-}
-
-.glass-input:focus {
-  border: 1px solid rgba(255,255,255,0.8);
-  background: rgba(255,255,255,0.15);
-  transform: scale(1.03);
-}
-
-/* Ez minden TextBox placeholderét fehérre színezi */
-.form-control::placeholder {
-  color: rgba(255, 255, 255, 0.6) !important;
-}
-
-/* Ez pedig a gépelt szöveget biztosítja be */
-.form-control {
-  color: white !important;
-}
+/* Hamburger X animáció */
+.hamburger-icon.active .bar:nth-child(1) { transform: translateY(9px) rotate(45deg); }
+.hamburger-icon.active .bar:nth-child(2) { opacity: 0; }
+.hamburger-icon.active .bar:nth-child(3) { transform: translateY(-9px) rotate(-45deg); }

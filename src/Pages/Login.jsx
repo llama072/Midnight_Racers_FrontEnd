@@ -1,14 +1,12 @@
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom"; // Link egy importba vonva
 import BackGround from "../assets/Background.png";
 import Navbar from "../components/Navbar";
 import Card from "../components/Card";
 import TextBox from "../components/Textbox";
 import Button from "../components/Button";
-import 'bootstrap/dist/css/bootstrap.min.css'
-import { Link } from "react-router-dom";
+import 'bootstrap/dist/css/bootstrap.min.css';
 import { bejelentkezes } from "../../api";
-
 
 export default function Login() {
     const navigate = useNavigate();
@@ -24,25 +22,29 @@ export default function Login() {
     };
 
     const handleLogin = async () => {
+        // 1. Alap ellenőrzés
         if (!felhasznalonev || !jelszo) {
             alert("Hiányos adat(ok)!");
             return;
         }
 
         try {
-            // Hívjuk a backendet
+            // 2. API hívás
             const res = await bejelentkezes(felhasznalonev, jelszo);
 
             if (res.result) {
-                // SIKER! A süti már a böngészőben van.
-                alert(res.message);
+                // SIKER!
+                alert(res.message || "Sikeres belépés!");
 
-                // Opcionális: elmentheted a nevet a gépükre is
-                localStorage.setItem("username", res.user.name);
+                // 3. Mentés a localStorage-ba (hogy a Navbar lássa)
+                // Fontos: res.user-t mentünk el, amiben benne van a User_Name
+                localStorage.setItem("user", JSON.stringify(res.user));
 
-                navigate("/"); // Irány a kezdőlap!
+                // 4. Navigáció és frissítés
+                navigate("/");
+                window.location.reload();
             } else {
-                // HIBA (pl. rossz jelszó vagy nincs ilyen felhasználó)
+                // HIBA (rossz jelszó, stb.)
                 alert(res.message);
             }
         } catch (error) {
@@ -62,7 +64,6 @@ export default function Login() {
                 backgroundColor: "black"
             }}
         >
-            {/* Parallax háttér */}
             <div
                 style={{
                     backgroundImage: `url(${BackGround})`,
@@ -78,7 +79,6 @@ export default function Login() {
                 }}
             />
 
-            {/* Sötétítő réteg */}
             <div
                 style={{
                     position: "absolute",
@@ -91,7 +91,6 @@ export default function Login() {
                 }}
             />
 
-            {/* Görgethető fő konténer */}
             <div
                 className="no-scrollbar"
                 style={{
@@ -116,17 +115,19 @@ export default function Login() {
                         width: "100%"
                     }}
                 >
-                    <Card width="500px" height="400px" title="LOGIN">
-                        <div className="login-content">
-
+                    <Card width="500px" height="450px" title="LOGIN">
+                        <div className="login-content p-4">
+                            <div className="mb-3">
                             <TextBox
+                                
                                 title="Felhasználónév"
                                 type="text"
                                 placeholder="Username"
                                 value={felhasznalonev}
                                 setValue={setFelhasznalonev}
                             />
-
+                            </div>
+                        <div className="mb-3">
                             <TextBox
                                 title="Jelszó"
                                 type="password"
@@ -134,27 +135,22 @@ export default function Login() {
                                 value={jelszo}
                                 setValue={setJelszo}
                             />
-                            <div className="mt-3">
+                        </div>
+
+                            <div className="mt-4 text-center">
                                 <Button
                                     content="Login"
                                     onClick={handleLogin}
                                     color={"info"}
                                 />
                             </div>
-                            <div className="text-center text-white mt-2">
+
+                            <div className="text-center text-white mt-3">
                                 Don't have an account? <br />
                                 <Link
                                     to="/Register"
                                     className="fw-bold text-decoration-none"
-                                    style={{
-                                        color: '#8898f0',
-                                        cursor: 'pointer',
-                                        fontSize: '1rem',
-                                        transition: '0.3s'
-                                    }}
-                                    // Egy kis hover effekt, hogy világosodjon, ha ráviszed az egeret
-                                    onMouseEnter={(e) => e.target.style.color = '#adb9f5'}
-                                    onMouseLeave={(e) => e.target.style.color = '#8898f0'}
+                                    style={{ color: '#8898f0' }}
                                 >
                                     Register Now
                                 </Link>
@@ -163,7 +159,6 @@ export default function Login() {
                         </div>
                     </Card>
                 </div>
-
                 <div style={{ height: "80px" }} />
             </div>
         </div>

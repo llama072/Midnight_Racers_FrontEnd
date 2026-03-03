@@ -5,29 +5,61 @@ import Navbar from "../components/Navbar";
 import Card from "../components/Card";
 import TextBox from "../components/Textbox";
 import Button from "../components/Button";
-import 'bootstrap/dist/css/bootstrap.min.css'
+import 'bootstrap/dist/css/bootstrap.min.css';
 import { regisztracio } from "../../api";
 
 export default function Register() {
     const navigate = useNavigate();
 
+    // State-ek az adatok tárolására
     const [First_Name, setF_name] = useState("");
     const [Last_Name, setL_name] = useState("");
     const [User_Name, setUsername] = useState("");
     const [Email, setEmail] = useState("");
-    const [Password, setPassword] = useState(""); // Legyen simán Password
-    const [ConfirmPassword, setConfirmPassword] = useState(""); // Legyen egyértelmű
+    const [Password, setPassword] = useState("");
+    const [ConfirmPassword, setConfirmPassword] = useState("");
 
-
-
-
-
-
+    // Parallax effekt háttér eltolása
     const [offset, setOffset] = useState({ x: 0, y: 0 });
+
     const handleMouseMove = (e) => {
         const x = (window.innerWidth / 2 - e.pageX) / 70;
         const y = (window.innerHeight / 2 - e.pageY) / 70;
         setOffset({ x, y });
+    };
+
+    // A regisztrációt kezelő fő függvény
+    const handleRegister = async () => {
+        console.log("Állapot ellenőrzése:", { User_Name, First_Name, Last_Name, Email, Password, ConfirmPassword });
+
+        // 1. Frontend validáció: minden mező ki van-e töltve?
+        if (!User_Name || !First_Name || !Last_Name || !Email || !Password || !ConfirmPassword) {
+            alert("Hiányos Adat(ok) ₍^. .^₎⟆");
+            return;
+        }
+
+        // 2. Frontend validáció: egyeznek-e a jelszavak?
+        if (Password !== ConfirmPassword) {
+            alert("A jelszavak nem egyeznek!");
+            return;
+        }
+
+        try {
+            // 3. API hívás az api.js-ből
+            const res = await regisztracio(User_Name, First_Name, Last_Name, Email, Password);
+
+            // 4. Válasz kezelése (az api.js-ed result: true/false alapján küldi)
+            if (res.result) {
+                alert(res.message || "Sikeres regisztráció!");
+                navigate('/Login');
+            } else {
+                // Itt fog megjelenni pl. a "Nem valos emailt adtal meg" üzenet
+                alert(res.message || "Hiba történt a regisztráció során.");
+            }
+        } catch (error) {
+            console.error("Hálózati hiba:", error);
+            alert("Szerver hiba történt, próbáld újra később!");
+        }
     };
 
     return (
@@ -96,7 +128,7 @@ export default function Register() {
                     <Card width="800px" height="600px" title="CREATE AN ACCOUNT">
                         <div className="px-5 py-4">
 
-                            {/* First + Last */}
+                            {/* Név mezők */}
                             <div className="row g-3 mb-3">
                                 <div className="col-md-6">
                                     <TextBox placeholder="First Name" type="text" value={First_Name} setValue={setF_name} />
@@ -106,61 +138,48 @@ export default function Register() {
                                 </div>
                             </div>
 
-                            {/* Username */}
+                            {/* Felhasználónév */}
                             <div className="row g-3 mb-3">
                                 <div className="col-12">
                                     <TextBox placeholder="Username" type="text" value={User_Name} setValue={setUsername} />
                                 </div>
                             </div>
 
-                            {/* Email */}
+                            {/* E-mail */}
                             <div className="row g-3 mb-3">
                                 <div className="col-12">
                                     <TextBox placeholder="E-mail" type="email" value={Email} setValue={setEmail} />
                                 </div>
                             </div>
 
-                            {/* Password */}
+                            {/* Jelszó */}
                             <div className="row g-3 mb-3">
                                 <div className="col-12">
                                     <TextBox placeholder="Password" type="password" value={Password} setValue={setPassword} />
                                 </div>
                             </div>
 
-                            {/* Confirm Password */}
+                            {/* Jelszó megerősítése */}
                             <div className="row g-3">
                                 <div className="col-12">
                                     <TextBox placeholder="Confirm Password" type="password" value={ConfirmPassword} setValue={setConfirmPassword} />
                                 </div>
                             </div>
 
-                            {/* Button */}
+                            {/* Regisztrációs gomb */}
                             <div className="mt-4 text-center">
-                                <Button content="Register" color="info" onClick={async () => {
-                                    console.log("Állapot ellenőrzése:", { User_Name, First_Name, Last_Name, Email, Password, ConfirmPassword });
-                                    if (!User_Name || !First_Name || !Last_Name || !Email || !Password || !ConfirmPassword) {
-                                        alert("Hianyos Adat(ok)  ₍^. .^₎⟆  ")
-                                        return;
-                                    }
-                                    if (Password !== ConfirmPassword) {
-                                        alert("A jelszavak nem egyeznek!")
-                                        return;
-                                    }
-                                    const res = await regisztracio(User_Name, First_Name, Last_Name, Email, Password);
-                                    if (res.result) {
-                                        navigtation('/')
-                                    }
-
-                                }}
-
-
+                                <Button 
+                                    content="Register" 
+                                    color="info" 
+                                    onClick={handleRegister} 
                                 />
 
                                 <div className="mt-3 text-white-50 small">
                                     Already have an account?
                                     <Link
                                         to="/Login"
-                                        className="text-info ms-2 fw-bold text-decoration-none"
+                                        className="ms-2 fw-bold text-decoration-none"
+                                        style={{ color: '#8898f0' }}
                                     >
                                         Login here
                                     </Link>

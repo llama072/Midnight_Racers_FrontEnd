@@ -26,3 +26,21 @@ export async function bejelentkezes(User_Name, Password) {
     
     return await res.json();
 }
+
+// api.js
+export async function kijelentkezes() {
+    try {
+        const response = await fetch("http://localhost:3000/kijelentkezes", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+            },
+            // Nagyon fontos a sütik miatt:
+            credentials: "include" 
+        });
+        return await response.json();
+    } catch (error) {
+        console.error("Logout hiba:", error);
+        return { message: "Hiba történt" };
+    }
+}
