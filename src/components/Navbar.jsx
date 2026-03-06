@@ -56,8 +56,8 @@ export default function Navbar() {
 
                     <div className="nav-links-container pill-blur d-flex align-items-center shadow-lg">
                         <Link to="/" className="nav-link text-white fw-bold px-3" onClick={() => setIsOpen(false)}>HOME</Link>
-                        <a href="#" className="nav-link text-white fw-bold px-3" onClick={() => setIsOpen(false)}>DOWNLOAD</a>
-                        <a href="#" className="nav-link text-white fw-bold px-3" onClick={() => setIsOpen(false)}>UPDATES</a>
+                        <Link to="/Download" className="nav-link text-white fw-bold px-3" onClick={() => setIsOpen(false)}>DOWNLOAD</Link>
+                        <Link to="/Updates" className="nav-link text-white fw-bold px-3" onClick={() => setIsOpen(false)}>UPDATES</Link>
                         <a href="#" className="nav-link text-white fw-bold px-3" onClick={() => setIsOpen(false)}>DONATE</a>
                         <a href="#" className="nav-link text-white fw-bold px-3" onClick={() => setIsOpen(false)}>FAQ</a>
                     </div>
@@ -71,7 +71,7 @@ export default function Navbar() {
                                 {user.name}
                             </button>
                             <ul className="dropdown-menu dropdown-menu-dark dropdown-menu-end custom-black-dropdown shadow">
-                                <li><button className="dropdown-item" onClick={() => navigate("/profile")}>Profile</button></li>
+                                <li><button className="dropdown-item" onClick={() => navigate("/Profile")}>Profile</button></li>
                                 <li><hr className="dropdown-divider" /></li>
                                 <li><button className="dropdown-item text-danger" onClick={handleLogout}>Logout</button></li>
                             </ul>

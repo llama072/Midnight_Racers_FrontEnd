@@ -129,3 +129,53 @@ input::placeholder {
 .hamburger-icon.active .bar:nth-child(1) { transform: translateY(9px) rotate(45deg); }
 .hamburger-icon.active .bar:nth-child(2) { opacity: 0; }
 .hamburger-icon.active .bar:nth-child(3) { transform: translateY(-9px) rotate(-45deg); }
+
+
+/* A görgetősáv sávja */
+.custom-scroll::-webkit-scrollbar {
+  width: 6px;
+}
+
+/* Alapállapot: legyen szinte teljesen átlátszó, de ne 0 */
+.custom-scroll::-webkit-scrollbar-thumb {
+  background-color: rgba(255, 255, 255, 0.01); 
+  border-radius: 10px;
+}
+
+/* Amikor görgetsz: egy sötétebb, de még mindig üvegszerű fehér */
+.custom-scroll.scrolling::-webkit-scrollbar-thumb {
+  background-color: rgba(255, 255, 255, 0.3);
+}
+
+.container-fluid {
+  margin-top: 10px; 
+}
+
+@media (max-width: 768px) {
+  /* Mobilon a kártyák legyenek keskenyebbek, hogy elférjenek */
+  .card-container > div {
+      width: 95% !important;
+      max-width: 320px;
+  }
+  
+  /* A padding segít, hogy ne ragadjon a képernyő tetejéhez a kártya */
+  .container-fluid {
+      padding-top: 20px !important;
+  }
+}
+
+.tick-icon {
+  position: absolute;
+  right: 25px;
+  top: 50%;
+  transform: translateY(-50%);
+  cursor: pointer;
+  color: #4CAF50; /* Zöld pipa */
+  font-size: 1.2rem;
+  z-index: 5;
+  transition: scale 0.2s;
+}
+
+.tick-icon:hover {
+  scale: 1.3;
+}

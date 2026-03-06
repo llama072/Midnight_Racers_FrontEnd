@@ -44,3 +44,33 @@ export async function kijelentkezes() {
         return { message: "Hiba történt" };
     }
 }
+
+export async function getProfilAdatok() {
+    const res = await fetch(`${BASE}/profil-adatok`, {
+        method: 'GET',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include' // Ez kell, hogy elküldje az auth_token sütit!
+    });
+    return await res.json();
+}
+
+// PROFIL ADAT FRISSÍTÉSE (Mezőnként)
+export async function updateProfilAdat(field, value) {
+    const res = await fetch(`${BASE}/profil-update`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({ field, value })
+    });
+    return await res.json();
+}
+
+export async function updatePassword(currentPassword, newPassword) {
+    const res = await fetch(`${BASE}/update-password`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({ currentPassword, newPassword })
+    });
+    return await res.json();
+}
