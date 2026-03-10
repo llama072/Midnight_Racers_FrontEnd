@@ -7,6 +7,7 @@ import { kijelentkezes } from "../../api";
 export default function Navbar() {
     const [isOpen, setIsOpen] = useState(false);
     const [user, setUser] = useState(null);
+    const [showMenu, setShowMenu] = useState(false);
     const navigate = useNavigate();
 
     useEffect(() => {
@@ -37,44 +38,143 @@ export default function Navbar() {
                     <img src={logo} alt="Logo" className="img-fluid" style={{ height: '110px' }} />
                 </div>
 
-                {/* MOBIL MENÜ RÉTEG */}
+                {/* KÖZÉPSŐ MENÜ */}
                 <div className={`nav-links-wrapper ${isOpen ? 'open' : ''}`}>
-
-                    {/* A BEZÁRÓ X GOMB - Fixált pozícióval, hogy biztosan látszódjon */}
                     <button
                         type="button"
                         className="btn-close btn-close-white d-lg-none shadow-none"
-                        style={{
-                            position: 'fixed',
-                            top: '30px',
-                            right: '30px',
-                            fontSize: '2rem',
-                            zIndex: 3000
-                        }}
+                        style={{ position: 'fixed', top: '30px', right: '30px', fontSize: '2rem', zIndex: 3000 }}
                         onClick={() => setIsOpen(false)}
                     ></button>
 
                     <div className="nav-links-container pill-blur d-flex align-items-center shadow-lg">
-                        <Link to="/" className="nav-link text-white fw-bold px-3" onClick={() => setIsOpen(false)}>HOME</Link>
+                        <Link to="/"         className="nav-link text-white fw-bold px-3" onClick={() => setIsOpen(false)}>HOME</Link>
                         <Link to="/Download" className="nav-link text-white fw-bold px-3" onClick={() => setIsOpen(false)}>DOWNLOAD</Link>
-                        <Link to="/Updates" className="nav-link text-white fw-bold px-3" onClick={() => setIsOpen(false)}>UPDATES</Link>
-                        <a href="#" className="nav-link text-white fw-bold px-3" onClick={() => setIsOpen(false)}>DONATE</a>
-                        <a href="#" className="nav-link text-white fw-bold px-3" onClick={() => setIsOpen(false)}>FAQ</a>
+                        <Link to="/Updates"  className="nav-link text-white fw-bold px-3" onClick={() => setIsOpen(false)}>UPDATES</Link>
+                        <Link to="/Donate"   className="nav-link text-white fw-bold px-3" onClick={() => setIsOpen(false)}>DONATE</Link>
+                        <Link to="/FAQ"      className="nav-link text-white fw-bold px-3" onClick={() => setIsOpen(false)}>FAQ</Link>
                     </div>
                 </div>
 
                 {/* JOBB OLDAL: USER / LOGIN */}
                 <div className="col-4 d-flex justify-content-end align-items-center">
                     {user ? (
-                        <div className="dropdown d-none d-lg-block">
-                            <button className="btn user-pill-btn dropdown-toggle text-white border-0" type="button" data-bs-toggle="dropdown">
-                                {user.name}
-                            </button>
-                            <ul className="dropdown-menu dropdown-menu-dark dropdown-menu-end custom-black-dropdown shadow">
-                                <li><button className="dropdown-item" onClick={() => navigate("/Profile")}>Profile</button></li>
-                                <li><hr className="dropdown-divider" /></li>
-                                <li><button className="dropdown-item text-danger" onClick={handleLogout}>Logout</button></li>
-                            </ul>
+                        <div className="d-none d-lg-block position-relative">
+
+                            {/* USER PILL GOMB */}
+                            <div
+                                onClick={() => setShowMenu(prev => !prev)}
+                                style={{
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    gap: '10px',
+                                    background: 'rgba(255,255,255,0.08)',
+                                    backdropFilter: 'blur(12px)',
+                                    border: '1px solid rgba(255,255,255,0.15)',
+                                    borderRadius: '50px',
+                                    padding: '8px 18px',
+                                    cursor: 'pointer',
+                                    transition: 'all 0.3s ease',
+                                    userSelect: 'none'
+                                }}
+                                onMouseEnter={(e) => e.currentTarget.style.background = 'rgba(255,255,255,0.15)'}
+                                onMouseLeave={(e) => e.currentTarget.style.background = 'rgba(255,255,255,0.08)'}
+                            >
+                                {/* Név */}
+                                <span style={{
+                                    color: 'white',
+                                    fontWeight: '600',
+                                    fontSize: '0.9rem',
+                                    letterSpacing: '0.5px'
+                                }}>
+                                    {user.name}
+                                </span>
+
+                                {/* Nyíl ikon */}
+                                <span style={{
+                                    color: 'rgba(255,255,255,0.6)',
+                                    fontSize: '0.7rem',
+                                    transition: 'transform 0.3s',
+                                    transform: showMenu ? 'rotate(180deg)' : 'rotate(0deg)',
+                                    display: 'inline-block'
+                                }}>▼</span>
+                            </div>
+
+                            {/* LENYÍLÓ MENÜ */}
+                            {showMenu && (
+                                <div style={{
+                                    position: 'absolute',
+                                    top: 'calc(100% + 12px)',
+                                    right: 0,
+                                    background: 'rgba(10,10,20,0.95)',
+                                    backdropFilter: 'blur(20px)',
+                                    border: '1px solid rgba(255,255,255,0.1)',
+                                    borderRadius: '16px',
+                                    padding: '8px',
+                                    minWidth: '180px',
+                                    zIndex: 5000,
+                                    boxShadow: '0 20px 60px rgba(0,0,0,0.5)',
+                                    animation: 'fadeInDown 0.2s ease'
+                                }}>
+                                    <style>{`
+                                        @keyframes fadeInDown {
+                                            from { opacity: 0; transform: translateY(-8px); }
+                                            to   { opacity: 1; transform: translateY(0); }
+                                        }
+                                        .user-menu-item {
+                                            display: flex;
+                                            align-items: center;
+                                            gap: 10px;
+                                            padding: 10px 14px;
+                                            border-radius: 10px;
+                                            cursor: pointer;
+                                            color: white;
+                                            font-size: 0.9rem;
+                                            font-weight: 500;
+                                            transition: background 0.2s;
+                                            border: none;
+                                            background: transparent;
+                                            width: 100%;
+                                            text-align: left;
+                                            letter-spacing: 0.3px;
+                                        }
+                                        .user-menu-item:hover {
+                                            background: rgba(255,255,255,0.08);
+                                        }
+                                        .user-menu-item.danger { color: #ff6b6b; }
+                                        .user-menu-item.danger:hover { background: rgba(255,107,107,0.1); }
+                                        .menu-divider {
+                                            height: 1px;
+                                            background: rgba(255,255,255,0.08);
+                                            margin: 6px 0;
+                                        }
+                                    `}</style>
+
+                                    {/* Profil info fejléc */}
+                                    <div style={{
+                                        padding: '8px 14px 12px',
+                                        borderBottom: '1px solid rgba(255,255,255,0.08)',
+                                        marginBottom: '6px'
+                                    }}>
+                                        <div style={{ fontSize: '0.75rem', color: 'rgba(255,255,255,0.4)', letterSpacing: '1px', marginBottom: '2px' }}>
+                                            SIGNED IN AS
+                                        </div>
+                                        <div style={{ fontWeight: '700', fontSize: '0.95rem', color: 'white' }}>
+                                            {user.name}
+                                        </div>
+                                    </div>
+
+                                    <button className="user-menu-item" onClick={() => { navigate("/Profile"); setShowMenu(false); }}>
+                                        <span>👤</span> Profile
+                                    </button>
+
+                                    <div className="menu-divider" />
+
+                                    <button className="user-menu-item danger" onClick={handleLogout}>
+                                        <span>🚪</span> Logout
+                                    </button>
+                                </div>
+                            )}
                         </div>
                     ) : (
                         <div className="d-none d-lg-block">
@@ -82,7 +182,7 @@ export default function Navbar() {
                         </div>
                     )}
 
-                    {/* HAMBURGER GOMB (Nyitáshoz) */}
+                    {/* HAMBURGER */}
                     <button className="navbar-toggler border-0 shadow-none" type="button" onClick={() => setIsOpen(true)}>
                         <div className="hamburger-icon d-flex">
                             <span className="bar"></span>

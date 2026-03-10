@@ -1,76 +1,84 @@
-const BASE = "http://localhost:3000"
+const BASE = 'http://localhost:3000';
 
-export async function regisztracio(User_Name, First_Name, Last_Name, Email, Password){
-    const res = await fetch(`${BASE}/regisztracio`, {
+export const regisztracio = (User_Name, First_Name, Last_Name, Email, Password) =>
+    fetch(`${BASE}/regisztracio`, {
         method: 'POST',
-        headers: {'Content-Type': 'application/json'},
+        headers: { 'Content-Type': 'application/json' },
         credentials: 'include',
-        body: JSON.stringify({User_Name, First_Name, Last_Name, Email, Password, Is_Admin: 0})
-    })
-    const data = await res.json();
-    if(!res.ok){
-        return {result: false, message: data.message};
-    }else{
-        return {result: true, message: data.message};
-    }
-}
+        body: JSON.stringify({ User_Name, First_Name, Last_Name, Email, Password, Is_Admin: 0 })
+    }).then(async r => {
+        const data = await r.json();
+        return { result: r.ok, ...data };
+    });
 
-export async function bejelentkezes(User_Name, Password) {
-    const res = await fetch(`${BASE}/belepes`, {
+export const bejelentkezes = (User_Name, Password) =>
+    fetch(`${BASE}/belepes`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        // Ez kötelező, hogy a sütit (cookie) el tudja menteni a böngésző!
-        credentials: 'include', 
+        credentials: 'include',
         body: JSON.stringify({ User_Name, Password })
+    }).then(async r => {
+        const data = await r.json();
+        return { result: r.ok, ...data };
     });
-    
-    return await res.json();
-}
 
-// api.js
-export async function kijelentkezes() {
-    try {
-        const response = await fetch("http://localhost:3000/kijelentkezes", {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json",
-            },
-            // Nagyon fontos a sütik miatt:
-            credentials: "include" 
-        });
-        return await response.json();
-    } catch (error) {
-        console.error("Logout hiba:", error);
-        return { message: "Hiba történt" };
-    }
-}
+export const kijelentkezes = () =>
+    fetch(`${BASE}/kijelentkezes`, {
+        method: 'POST',
+        credentials: 'include'
+    }).then(r => r.json());
 
-export async function getProfilAdatok() {
-    const res = await fetch(`${BASE}/profil-adatok`, {
-        method: 'GET',
-        headers: { 'Content-Type': 'application/json' },
-        credentials: 'include' // Ez kell, hogy elküldje az auth_token sütit!
-    });
-    return await res.json();
-}
+export const getProfilAdatok = () =>
+    fetch(`${BASE}/profil-adatok`, {
+        credentials: 'include'
+    }).then(r => r.json());
 
-// PROFIL ADAT FRISSÍTÉSE (Mezőnként)
-export async function updateProfilAdat(field, value) {
-    const res = await fetch(`${BASE}/profil-update`, {
+export const updateProfilAdat = (field, value) =>
+    fetch(`${BASE}/profil-update`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         credentials: 'include',
         body: JSON.stringify({ field, value })
-    });
-    return await res.json();
-}
+    }).then(r => r.json());
 
-export async function updatePassword(currentPassword, newPassword) {
-    const res = await fetch(`${BASE}/update-password`, {
+export const updatePassword = (currentPassword, newPassword) =>
+    fetch(`${BASE}/update-password`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         credentials: 'include',
         body: JSON.stringify({ currentPassword, newPassword })
-    });
-    return await res.json();
-}
+    }).then(r => r.json());
+
+// HOME KÁRTYÁK
+export const getHomeKartyak = () =>
+    fetch(`${BASE}/home-cards`, {
+        credentials: 'include'
+    }).then(r => r.json());
+
+export const updateHomeKartya = (id, tartalom) =>
+    fetch(`${BASE}/home-cards/${id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({ tartalom })
+    }).then(r => r.json());
+
+// UPDATES
+export const getUpdates = () =>
+    fetch(`${BASE}/updates`, {
+        credentials: 'include'
+    }).then(r => r.json());
+
+export const addUpdate = (datum, szoveg) =>
+    fetch(`${BASE}/updates`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({ datum, szoveg })
+    }).then(r => r.json());
+
+export const deleteUpdate = (id) =>
+    fetch(`${BASE}/updates/${id}`, {
+        method: 'DELETE',
+        credentials: 'include'
+    }).then(r => r.json());
