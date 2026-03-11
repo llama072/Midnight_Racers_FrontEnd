@@ -63,6 +63,26 @@ export const updateHomeKartya = (id, tartalom) =>
         body: JSON.stringify({ tartalom })
     }).then(r => r.json());
 
+// NEWS
+export const getNews = () =>
+    fetch(`${BASE}/news`, {
+        credentials: 'include'
+    }).then(r => r.json());
+
+export const addNews = (cim, tartalom, datum) =>
+    fetch(`${BASE}/news`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({ cim, tartalom, datum })
+    }).then(r => r.json());
+
+export const deleteNews = (id) =>
+    fetch(`${BASE}/news/${id}`, {
+        method: 'DELETE',
+        credentials: 'include'
+    }).then(r => r.json());
+
 // UPDATES
 export const getUpdates = () =>
     fetch(`${BASE}/updates`, {

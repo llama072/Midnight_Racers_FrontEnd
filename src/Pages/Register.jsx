@@ -35,6 +35,10 @@ export default function Register() {
             alert("Hiányos Adat(ok) ₍^. .^₎⟆");
             return;
         }
+        if (Password.length < 6) {
+            alert("A jelszónak legalább 6 karakternek kell lennie!");
+            return;
+        }
         if (Password !== ConfirmPassword) {
             alert("A jelszavak nem egyeznek!");
             return;
@@ -116,7 +120,7 @@ export default function Register() {
                             </div>
                             <div className="row g-3 mb-3">
                                 <div className="col-12">
-                                    <TextBox placeholder="Password" type="password" value={Password} setValue={setPassword} />
+                                    <TextBox placeholder="Password (min. 6 karakter)" type="password" value={Password} setValue={setPassword} />
                                 </div>
                             </div>
                             <div className="row g-3">
