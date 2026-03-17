@@ -65,35 +65,22 @@ export default function Navbar() {
                             <div
                                 onClick={() => setShowMenu(prev => !prev)}
                                 style={{
-                                    display: 'flex',
-                                    alignItems: 'center',
-                                    gap: '10px',
+                                    display: 'flex', alignItems: 'center', gap: '10px',
                                     background: 'rgba(255,255,255,0.08)',
                                     backdropFilter: 'blur(12px)',
                                     border: '1px solid rgba(255,255,255,0.15)',
-                                    borderRadius: '50px',
-                                    padding: '8px 18px',
-                                    cursor: 'pointer',
-                                    transition: 'all 0.3s ease',
+                                    borderRadius: '50px', padding: '8px 18px',
+                                    cursor: 'pointer', transition: 'all 0.3s ease',
                                     userSelect: 'none'
                                 }}
                                 onMouseEnter={(e) => e.currentTarget.style.background = 'rgba(255,255,255,0.15)'}
                                 onMouseLeave={(e) => e.currentTarget.style.background = 'rgba(255,255,255,0.08)'}
                             >
-                                {/* Név */}
-                                <span style={{
-                                    color: 'white',
-                                    fontWeight: '600',
-                                    fontSize: '0.9rem',
-                                    letterSpacing: '0.5px'
-                                }}>
+                                <span style={{ color: 'white', fontWeight: '600', fontSize: '0.9rem', letterSpacing: '0.5px' }}>
                                     {user.name}
                                 </span>
-
-                                {/* Nyíl ikon */}
                                 <span style={{
-                                    color: 'rgba(255,255,255,0.6)',
-                                    fontSize: '0.7rem',
+                                    color: 'rgba(255,255,255,0.6)', fontSize: '0.7rem',
                                     transition: 'transform 0.3s',
                                     transform: showMenu ? 'rotate(180deg)' : 'rotate(0deg)',
                                     display: 'inline-block'
@@ -103,16 +90,12 @@ export default function Navbar() {
                             {/* LENYÍLÓ MENÜ */}
                             {showMenu && (
                                 <div style={{
-                                    position: 'absolute',
-                                    top: 'calc(100% + 12px)',
-                                    right: 0,
+                                    position: 'absolute', top: 'calc(100% + 12px)', right: 0,
                                     background: 'rgba(10,10,20,0.95)',
                                     backdropFilter: 'blur(20px)',
                                     border: '1px solid rgba(255,255,255,0.1)',
-                                    borderRadius: '16px',
-                                    padding: '8px',
-                                    minWidth: '180px',
-                                    zIndex: 5000,
+                                    borderRadius: '16px', padding: '8px',
+                                    minWidth: '180px', zIndex: 5000,
                                     boxShadow: '0 20px 60px rgba(0,0,0,0.5)',
                                     animation: 'fadeInDown 0.2s ease'
                                 }}>
@@ -122,32 +105,18 @@ export default function Navbar() {
                                             to   { opacity: 1; transform: translateY(0); }
                                         }
                                         .user-menu-item {
-                                            display: flex;
-                                            align-items: center;
-                                            gap: 10px;
-                                            padding: 10px 14px;
-                                            border-radius: 10px;
-                                            cursor: pointer;
-                                            color: white;
-                                            font-size: 0.9rem;
-                                            font-weight: 500;
-                                            transition: background 0.2s;
-                                            border: none;
-                                            background: transparent;
-                                            width: 100%;
-                                            text-align: left;
-                                            letter-spacing: 0.3px;
+                                            display: flex; align-items: center; gap: 10px;
+                                            padding: 10px 14px; border-radius: 10px;
+                                            cursor: pointer; color: white;
+                                            font-size: 0.9rem; font-weight: 500;
+                                            transition: background 0.2s; border: none;
+                                            background: transparent; width: 100%;
+                                            text-align: left; letter-spacing: 0.3px;
                                         }
-                                        .user-menu-item:hover {
-                                            background: rgba(255,255,255,0.08);
-                                        }
+                                        .user-menu-item:hover { background: rgba(255,255,255,0.08); }
                                         .user-menu-item.danger { color: #ff6b6b; }
                                         .user-menu-item.danger:hover { background: rgba(255,107,107,0.1); }
-                                        .menu-divider {
-                                            height: 1px;
-                                            background: rgba(255,255,255,0.08);
-                                            margin: 6px 0;
-                                        }
+                                        .menu-divider { height: 1px; background: rgba(255,255,255,0.08); margin: 6px 0; }
                                     `}</style>
 
                                     {/* Profil info fejléc */}
@@ -166,6 +135,10 @@ export default function Navbar() {
 
                                     <button className="user-menu-item" onClick={() => { navigate("/Profile"); setShowMenu(false); }}>
                                         <span>👤</span> Profile
+                                    </button>
+
+                                    <button className="user-menu-item" onClick={() => { navigate("/Stats"); setShowMenu(false); }}>
+                                        <span>🎮</span> Stats
                                     </button>
 
                                     <div className="menu-divider" />

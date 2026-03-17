@@ -102,3 +102,14 @@ export const deleteUpdate = (id) =>
         method: 'DELETE',
         credentials: 'include'
     }).then(r => r.json());
+
+// STATS
+export const getMyStats = () =>
+    fetch(`${BASE}/my-stats`, {
+        credentials: 'include'
+    }).then(r => r.json());
+
+export const getLeaderboard = () =>
+    fetch(`${BASE}/leaderboard`, {
+        credentials: 'include'
+    }).then(r => r.json());

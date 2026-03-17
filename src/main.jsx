@@ -9,6 +9,7 @@ import Updates from './Pages/Updates'
 import Profile from './Pages/Profile'
 import Donate from './Pages/Donate'
 import FAQ from './Pages/FAQ'
+import Stats from './Pages/Stats'
 import { BrowserRouter, Routes, Route } from 'react-router-dom'
 import { ThemeProvider } from './context/ThemeContext'
 
@@ -25,6 +26,7 @@ createRoot(document.getElementById('root')).render(
           <Route path='/Profile' element={<Profile />} />
           <Route path='/Donate' element={<Donate />} />
           <Route path='/FAQ' element={<FAQ />} />
+          <Route path='/Stats' element={<Stats />} />
         </Routes>
       </BrowserRouter>
     </ThemeProvider>
