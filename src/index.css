@@ -116,6 +116,7 @@ input::placeholder {
     justify-content: center;
     align-items: center;
     transition: 0.4s;
+    z-index: 10000;
   }
   .nav-links-wrapper.open { right: 0; }
   .pill-blur { flex-direction: column; background: none; border: none; gap: 30px; }
@@ -163,6 +164,13 @@ input::placeholder {
       padding-top: 20px !important;
   }
 }
+
+body.menu-open .theme-toggle {
+  display: none !important;
+}
+
+.no-scrollbar::-webkit-scrollbar { display: none; }
+.no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
 
 .tick-icon {
   position: absolute;

@@ -77,8 +77,44 @@ export const addNews = (cim, tartalom, datum) =>
         body: JSON.stringify({ cim, tartalom, datum })
     }).then(r => r.json());
 
+export const updateNews = (id, cim, tartalom, datum) =>
+    fetch(`${BASE}/news/${id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({ cim, tartalom, datum })
+    }).then(r => r.json());
+
 export const deleteNews = (id) =>
     fetch(`${BASE}/news/${id}`, {
+        method: 'DELETE',
+        credentials: 'include'
+    }).then(r => r.json());
+
+// ABOUT GALLERY
+export const getAboutGallery = () =>
+    fetch(`${BASE}/about-gallery`, { credentials: 'include' }).then(r => r.json());
+
+export const addAboutGalleryImage = (url) =>
+    fetch(`${BASE}/about-gallery`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({ url })
+    }).then(r => r.json());
+
+export const uploadAboutGalleryImage = (file) => {
+    const formData = new FormData();
+    formData.append('image', file);
+    return fetch(`${BASE}/about-gallery/upload`, {
+        method: 'POST',
+        credentials: 'include',
+        body: formData
+    }).then(r => r.json());
+};
+
+export const deleteAboutGalleryImage = (id) =>
+    fetch(`${BASE}/about-gallery/${id}`, {
         method: 'DELETE',
         credentials: 'include'
     }).then(r => r.json());

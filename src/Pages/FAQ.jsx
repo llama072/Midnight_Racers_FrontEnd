@@ -49,7 +49,7 @@ export default function FAQ() {
                 zIndex: 1, transition: 'background-color 0.5s ease'
             }} />
 
-            <div onClick={toggleTheme} style={{
+            <div className="theme-toggle" onClick={toggleTheme} style={{
                 position: 'fixed', bottom: '30px', left: '30px',
                 zIndex: 9999, cursor: 'pointer', transition: 'transform 0.3s ease',
                 display: 'flex', alignItems: 'center', justifyContent: 'center'

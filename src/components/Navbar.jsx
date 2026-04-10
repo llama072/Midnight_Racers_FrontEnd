@@ -4,7 +4,7 @@ import logo from "../assets/logo.png";
 import { Link, useNavigate } from "react-router-dom";
 import { kijelentkezes } from "../../api";
 
-export default function Navbar() {
+export default function Navbar({ onMenuToggle }) {
     const [isOpen, setIsOpen] = useState(false);
     const [user, setUser] = useState(null);
     const [showMenu, setShowMenu] = useState(false);
@@ -29,8 +29,11 @@ export default function Navbar() {
         }
     };
 
+    const openMenu = () => { setIsOpen(true); onMenuToggle?.(true); document.body.classList.add('menu-open'); };
+    const closeMenu = () => { setIsOpen(false); onMenuToggle?.(false); document.body.classList.remove('menu-open'); };
+
     return (
-        <nav className="navbar navbar-expand-lg fixed-top px-lg-5 py-1">
+        <nav className="navbar navbar-expand-lg fixed-top px-lg-5 py-1" style={{ zIndex: isOpen ? 10000 : undefined }}>
             <div className="container-fluid d-flex justify-content-between align-items-center">
 
                 {/* BAL OLDAL: LOGÓ */}
@@ -44,15 +47,20 @@ export default function Navbar() {
                         type="button"
                         className="btn-close btn-close-white d-lg-none shadow-none"
                         style={{ position: 'fixed', top: '30px', right: '30px', fontSize: '2rem', zIndex: 3000 }}
-                        onClick={() => setIsOpen(false)}
+                        onClick={closeMenu}
                     ></button>
 
                     <div className="nav-links-container pill-blur d-flex align-items-center shadow-lg">
-                        <Link to="/"         className="nav-link text-white fw-bold px-3" onClick={() => setIsOpen(false)}>HOME</Link>
-                        <Link to="/Download" className="nav-link text-white fw-bold px-3" onClick={() => setIsOpen(false)}>DOWNLOAD</Link>
-                        <Link to="/Updates"  className="nav-link text-white fw-bold px-3" onClick={() => setIsOpen(false)}>UPDATES</Link>
-                        <Link to="/Donate"   className="nav-link text-white fw-bold px-3" onClick={() => setIsOpen(false)}>DONATE</Link>
-                        <Link to="/FAQ"      className="nav-link text-white fw-bold px-3" onClick={() => setIsOpen(false)}>FAQ</Link>
+                        {!user && (
+                            <Link to="/Login" className="nav-link text-white fw-bold px-3 d-lg-none" onClick={closeMenu}>
+                                LOGIN / REGISTER
+                            </Link>
+                        )}
+                        <Link to="/"         className="nav-link text-white fw-bold px-3" onClick={closeMenu}>HOME</Link>
+                        <Link to="/Download" className="nav-link text-white fw-bold px-3" onClick={closeMenu}>DOWNLOAD</Link>
+                        <Link to="/Updates"  className="nav-link text-white fw-bold px-3" onClick={closeMenu}>UPDATES</Link>
+                        <Link to="/Donate"   className="nav-link text-white fw-bold px-3" onClick={closeMenu}>DONATE</Link>
+                        <Link to="/FAQ"      className="nav-link text-white fw-bold px-3" onClick={closeMenu}>FAQ</Link>
                     </div>
                 </div>
 
@@ -60,8 +68,6 @@ export default function Navbar() {
                 <div className="col-4 d-flex justify-content-end align-items-center">
                     {user ? (
                         <div className="d-none d-lg-block position-relative">
-
-                            {/* USER PILL GOMB */}
                             <div
                                 onClick={() => setShowMenu(prev => !prev)}
                                 style={{
@@ -87,7 +93,6 @@ export default function Navbar() {
                                 }}>▼</span>
                             </div>
 
-                            {/* LENYÍLÓ MENÜ */}
                             {showMenu && (
                                 <div style={{
                                     position: 'absolute', top: 'calc(100% + 12px)', right: 0,
@@ -119,7 +124,6 @@ export default function Navbar() {
                                         .menu-divider { height: 1px; background: rgba(255,255,255,0.08); margin: 6px 0; }
                                     `}</style>
 
-                                    {/* Profil info fejléc */}
                                     <div style={{
                                         padding: '8px 14px 12px',
                                         borderBottom: '1px solid rgba(255,255,255,0.08)',
@@ -136,13 +140,10 @@ export default function Navbar() {
                                     <button className="user-menu-item" onClick={() => { navigate("/Profile"); setShowMenu(false); }}>
                                         <span>👤</span> Profile
                                     </button>
-
                                     <button className="user-menu-item" onClick={() => { navigate("/Stats"); setShowMenu(false); }}>
                                         <span>🎮</span> Stats
                                     </button>
-
                                     <div className="menu-divider" />
-
                                     <button className="user-menu-item danger" onClick={handleLogout}>
                                         <span>🚪</span> Logout
                                     </button>
@@ -156,7 +157,7 @@ export default function Navbar() {
                     )}
 
                     {/* HAMBURGER */}
-                    <button className="navbar-toggler border-0 shadow-none" type="button" onClick={() => setIsOpen(true)}>
+                    <button className="navbar-toggler border-0 shadow-none" type="button" onClick={openMenu}>
                         <div className="hamburger-icon d-flex">
                             <span className="bar"></span>
                             <span className="bar"></span>

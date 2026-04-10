@@ -15,8 +15,8 @@ export default function Stats() {
     const [leaderboard, setLeaderboard] = useState([]);
 
     useEffect(() => {
-        getMyStats().then(data => { if (data) setMyStats(data); }).catch(() => {});
-        getLeaderboard().then(data => { if (Array.isArray(data)) setLeaderboard(data); }).catch(() => {});
+        getMyStats().then(data => { if (data) setMyStats(data); }).catch(() => { });
+        getLeaderboard().then(data => { if (Array.isArray(data)) setLeaderboard(data); }).catch(() => { });
     }, []);
 
     const handleMouseMove = (e) => {
@@ -58,7 +58,7 @@ export default function Stats() {
                 zIndex: 1, transition: 'background-color 0.5s ease'
             }} />
 
-            <div onClick={toggleTheme} style={{
+            <div className="theme-toggle" onClick={toggleTheme} style={{
                 position: 'fixed', bottom: '30px', left: '30px',
                 zIndex: 9999, cursor: 'pointer', transition: 'transform 0.3s ease',
                 display: 'flex', alignItems: 'center', justifyContent: 'center'
@@ -92,9 +92,7 @@ export default function Stats() {
                         }}>STATS</h2>
 
                         {[
-                            { label: 'LVL',      value: myStats.Lvl ?? 0,                 icon: '⭐' },
-                            { label: 'GAMETIME', value: formatGametime(myStats.Gametime), icon: '⏱️' },
-                            { label: 'SCORE',    value: myStats.Score ?? 0,               icon: '🏆' },
+                            { label: 'SCORE', value: myStats.Score ?? 0, icon: '🏆' },
                         ].map((stat) => (
                             <div key={stat.label} style={{
                                 display: 'flex', justifyContent: 'space-between', alignItems: 'center',

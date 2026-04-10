@@ -6,8 +6,19 @@ import SunIcon from "../assets/sun.png";
 import Navbar from "../components/Navbar";
 import Card from "../components/Card";
 import { useTheme } from "../context/ThemeContext";
-import { getHomeKartyak, updateHomeKartya, getNews, addNews, deleteNews } from "../../api";
+import { getHomeKartyak, updateHomeKartya, getNews, addNews, updateNews, deleteNews, getAboutGallery, uploadAboutGalleryImage, deleteAboutGalleryImage } from "../../api";
 import 'bootstrap/dist/css/bootstrap.min.css';
+
+const BACKEND = 'http://localhost:3000';
+const imgSrc = (url) => url?.startsWith('/uploads/') ? `${BACKEND}${url}` : url;
+
+const inputStyle = {
+    width: '100%', background: 'rgba(255,255,255,0.05)',
+    border: '1px solid rgba(255,255,255,0.2)', borderRadius: '8px',
+    color: 'white', padding: '8px 12px', fontSize: '0.85rem',
+    outline: 'none', marginBottom: '8px',
+    colorScheme: 'dark'
+};
 
 export default function Home() {
     const [offset, setOffset] = useState({ x: 0, y: 0 });
@@ -15,18 +26,29 @@ export default function Home() {
     const [user, setUser] = useState(null);
     const isAdmin = user?.is_admin === 1;
 
-    // ABOUT kártya
-    const [about, setAbout] = useState({ id: 'about', tartalom: 'Töltés...' });
-    const [editingAbout, setEditingAbout] = useState(false);
-    const [aboutText, setAboutText] = useState('');
+    const [kartyak, setKartyak] = useState({
+        news:  { id: 'news',  tartalom: 'Töltés...' },
+        about: { id: 'about', tartalom: 'Töltés...' }
+    });
+    const [editing, setEditing] = useState(null);
+    const [editText, setEditText] = useState('');
 
-    // NEWS
+    // News lista
     const [newsList, setNewsList] = useState([]);
-    const [showNewsForm, setShowNewsForm] = useState(false);
-    const [newCim, setNewCim] = useState('');
-    const [newTartalom, setNewTartalom] = useState('');
-    const [newDatum, setNewDatum] = useState('');
-    const [newsLoading, setNewsLoading] = useState(false);
+    const [showAddForm, setShowAddForm] = useState(false);
+    const [form, setForm] = useState({ cim: '', datum: '', tartalom: '' });
+    const [formLoading, setFormLoading] = useState(false);
+    const [editingNewsId, setEditingNewsId] = useState(null);
+    const [editForm, setEditForm] = useState({ cim: '', datum: '', tartalom: '' });
+    const [editLoading, setEditLoading] = useState(false);
+
+    // Gallery (About kártya)
+    const [gallery, setGallery] = useState([]);
+    const [activeSlide, setActiveSlide] = useState(0);
+    const [lightboxOpen, setLightboxOpen] = useState(false);
+    const [lightboxIndex, setLightboxIndex] = useState(0);
+    const [showGalleryAdmin, setShowGalleryAdmin] = useState(false);
+    const [uploadLoading, setUploadLoading] = useState(false);
 
     useEffect(() => {
         const storedUser = localStorage.getItem("user");
@@ -35,19 +57,49 @@ export default function Home() {
             catch (e) { console.error(e); }
         }
 
-        // ABOUT betöltés
         getHomeKartyak().then(data => {
-            if (data?.about) {
-                setAbout({ id: data.about.id, tartalom: data.about.tartalom });
-                setAboutText(data.about.tartalom);
+            if (data) {
+                setKartyak({
+                    news:  { id: data.news?.id  || 'news',  tartalom: data.news?.tartalom  || '' },
+                    about: { id: data.about?.id || 'about', tartalom: data.about?.tartalom || '' }
+                });
             }
-        }).catch(() => setAbout({ id: 'about', tartalom: 'Nincs adat.' }));
+        }).catch(() => {
+            setKartyak({
+                news:  { id: 'news',  tartalom: 'Nincs adat.' },
+                about: { id: 'about', tartalom: 'Nincs adat.' }
+            });
+        });
 
-        // NEWS betöltés
         getNews().then(data => {
             if (Array.isArray(data)) setNewsList(data);
-        }).catch(() => setNewsList([]));
+        }).catch(() => {});
+
+        getAboutGallery().then(data => {
+            if (Array.isArray(data)) setGallery(data);
+        }).catch(() => {});
     }, []);
+
+    // Slideshow auto-rotate (6.5mp)
+    useEffect(() => {
+        if (gallery.length <= 1) return;
+        const interval = setInterval(() => {
+            setActiveSlide(prev => (prev + 1) % gallery.length);
+        }, 6500);
+        return () => clearInterval(interval);
+    }, [gallery.length]);
+
+    // Lightbox billentyű navigáció
+    useEffect(() => {
+        if (!lightboxOpen) return;
+        const handler = (e) => {
+            if (e.key === 'ArrowRight') setLightboxIndex(p => (p + 1) % gallery.length);
+            if (e.key === 'ArrowLeft')  setLightboxIndex(p => (p - 1 + gallery.length) % gallery.length);
+            if (e.key === 'Escape')     setLightboxOpen(false);
+        };
+        window.addEventListener('keydown', handler);
+        return () => window.removeEventListener('keydown', handler);
+    }, [lightboxOpen, gallery.length]);
 
     const handleMouseMove = (e) => {
         const x = (window.innerWidth / 2 - e.pageX) / 70;
@@ -55,59 +107,116 @@ export default function Home() {
         setOffset({ x, y });
     };
 
-    const saveAbout = async () => {
+    const startEdit = (mezo) => { setEditing(mezo); setEditText(kartyak[mezo].tartalom); };
+
+    const saveEdit = async (mezo) => {
         try {
-            const res = await updateHomeKartya(about.id, aboutText);
+            const res = await updateHomeKartya(kartyak[mezo].id, editText);
             if (res.result) {
-                setAbout(prev => ({ ...prev, tartalom: aboutText }));
-                setEditingAbout(false);
-            } else {
-                alert("Hiba: " + res.message);
-            }
-        } catch {
-            alert("Szerver hiba!");
-        }
+                setKartyak(prev => ({ ...prev, [mezo]: { ...prev[mezo], tartalom: editText } }));
+                setEditing(null);
+            } else alert("Hiba a mentésnél: " + res.message);
+        } catch { alert("Szerver hiba!"); }
     };
 
     const handleAddNews = async () => {
-        if (!newCim || !newTartalom || !newDatum) {
-            alert("Töltsd ki az összes mezőt!");
-            return;
-        }
-        setNewsLoading(true);
+        if (!form.cim || !form.datum || !form.tartalom) return alert("Töltsd ki az összes mezőt!");
+        setFormLoading(true);
         try {
-            const res = await addNews(newCim, newTartalom, newDatum);
+            const res = await addNews(form.cim, form.tartalom, form.datum);
             if (res.result) {
-                const formatDatum = newDatum.replace(/-/g, '.');
-                setNewsList(prev => [{ id: res.id, cim: newCim, tartalom: newTartalom, datum: formatDatum }, ...prev]);
-                setNewCim('');
-                setNewTartalom('');
-                setNewDatum('');
-                setShowNewsForm(false);
-            } else {
-                alert("Hiba: " + res.message);
-            }
-        } catch {
-            alert("Szerver hiba!");
-        }
-        setNewsLoading(false);
+                const fresh = await getNews();
+                if (Array.isArray(fresh)) setNewsList(fresh);
+                setForm({ cim: '', datum: '', tartalom: '' });
+                setShowAddForm(false);
+            } else alert("Hiba: " + res.message);
+        } catch { alert("Szerver hiba!"); }
+        setFormLoading(false);
+    };
+
+    const startEditNews = (item) => {
+        setEditingNewsId(item.id);
+        setEditForm({ cim: item.cim, datum: item.datum, tartalom: item.tartalom });
+    };
+
+    const cancelEditNews = () => { setEditingNewsId(null); setEditForm({ cim: '', datum: '', tartalom: '' }); };
+
+    const handleUpdateNews = async (id) => {
+        if (!editForm.cim || !editForm.datum || !editForm.tartalom) return alert("Töltsd ki az összes mezőt!");
+        setEditLoading(true);
+        try {
+            const res = await updateNews(id, editForm.cim, editForm.tartalom, editForm.datum);
+            if (res.result) {
+                setNewsList(prev => prev.map(n => n.id === id ? { ...n, ...editForm } : n));
+                cancelEditNews();
+            } else alert("Hiba: " + res.message);
+        } catch { alert("Szerver hiba!"); }
+        setEditLoading(false);
+    };
+
+    const handleUploadImage = async (e) => {
+        const file = e.target.files?.[0];
+        if (!file) return;
+        setUploadLoading(true);
+        try {
+            const res = await uploadAboutGalleryImage(file);
+            if (res.result) {
+                const fresh = await getAboutGallery();
+                if (Array.isArray(fresh)) setGallery(fresh);
+            } else alert("Hiba: " + res.message);
+        } catch { alert("Szerver hiba!"); }
+        e.target.value = '';
+        setUploadLoading(false);
+    };
+
+    const handleDeleteGalleryImage = async (id) => {
+        if (!window.confirm("Törlöd ezt a képet?")) return;
+        try {
+            const res = await deleteAboutGalleryImage(id);
+            if (res.result) {
+                setGallery(prev => {
+                    const next = prev.filter(g => g.id !== id);
+                    setActiveSlide(0);
+                    return next;
+                });
+            } else alert("Hiba: " + res.message);
+        } catch { alert("Szerver hiba!"); }
     };
 
     const handleDeleteNews = async (id) => {
         if (!window.confirm("Biztosan törlöd ezt a hírt?")) return;
         try {
             const res = await deleteNews(id);
-            if (res.result) {
-                setNewsList(prev => prev.filter(n => n.id !== id));
-            } else {
-                alert("Hiba: " + res.message);
-            }
-        } catch {
-            alert("Szerver hiba!");
-        }
+            if (res.result) setNewsList(prev => prev.filter(n => n.id !== id));
+            else alert("Hiba: " + res.message);
+        } catch { alert("Szerver hiba!"); }
     };
 
+    const AdminEditBar = ({ mezo }) => (
+        <div style={{ marginTop: '10px', display: 'flex', gap: '8px', justifyContent: 'flex-end' }}>
+            {editing === mezo ? (
+                <>
+                    <button onClick={() => setEditing(null)} style={{
+                        background: 'rgba(255,100,100,0.2)', border: '1px solid rgba(255,100,100,0.4)',
+                        color: 'white', borderRadius: '8px', padding: '4px 12px', cursor: 'pointer', fontSize: '0.8rem'
+                    }}>✕ Mégse</button>
+                    <button onClick={() => saveEdit(mezo)} style={{
+                        background: 'rgba(100,200,100,0.2)', border: '1px solid rgba(100,200,100,0.4)',
+                        color: 'white', borderRadius: '8px', padding: '4px 12px', cursor: 'pointer', fontSize: '0.8rem'
+                    }}>✔ Mentés</button>
+                </>
+            ) : (
+                <button onClick={() => startEdit(mezo)} style={{
+                    background: 'rgba(136,152,240,0.2)', border: '1px solid rgba(136,152,240,0.4)',
+                    color: 'white', borderRadius: '8px', padding: '4px 12px', cursor: 'pointer', fontSize: '0.8rem',
+                    letterSpacing: '0.5px'
+                }}>✏️ Szerkesztés</button>
+            )}
+        </div>
+    );
+
     return (
+        <>
         <div onMouseMove={handleMouseMove} style={{
             height: '100vh', width: '100vw',
             position: 'relative', overflow: 'hidden', backgroundColor: 'black'
@@ -126,7 +235,7 @@ export default function Home() {
                 zIndex: 1, transition: 'background-color 0.5s ease'
             }} />
 
-            <div onClick={toggleTheme} style={{
+            <div className="theme-toggle" onClick={toggleTheme} style={{
                 position: 'fixed', bottom: '30px', left: '30px',
                 zIndex: 9999, cursor: 'pointer', transition: 'transform 0.3s ease',
                 display: 'flex', alignItems: 'center', justifyContent: 'center'
@@ -161,173 +270,266 @@ export default function Home() {
                         display: 'flex', justifyContent: 'center',
                         gap: '40px', width: '100%', padding: '0 20px'
                     }}>
-
                         {/* NEWS KÁRTYA */}
                         <Card title="NEWS">
-                            {/* Admin: új hír gomb */}
+                            {/* News lista */}
+                            <div className="no-scrollbar" style={{ maxHeight: '300px', overflowY: 'auto' }}>
+                                {newsList.length === 0 ? (
+                                    <p style={{ color: 'rgba(255,255,255,0.5)', fontSize: '0.85rem' }}>Még nincs hír.</p>
+                                ) : newsList.map(item => (
+                                    <div key={item.id} style={{
+                                        borderBottom: '1px solid rgba(255,255,255,0.08)',
+                                        paddingBottom: '10px', marginBottom: '10px'
+                                    }}>
+                                        {editingNewsId === item.id ? (
+                                            /* SZERKESZTÉS FORM */
+                                            <div style={{
+                                                background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.1)',
+                                                borderRadius: '10px', padding: '10px'
+                                            }}>
+                                                <input
+                                                    placeholder="Cím"
+                                                    value={editForm.cim}
+                                                    onChange={e => setEditForm(p => ({ ...p, cim: e.target.value }))}
+                                                    style={inputStyle}
+                                                />
+                                                <input
+                                                    type="date"
+                                                    value={editForm.datum}
+                                                    onChange={e => setEditForm(p => ({ ...p, datum: e.target.value }))}
+                                                    style={inputStyle}
+                                                />
+                                                <textarea
+                                                    placeholder="Tartalom"
+                                                    value={editForm.tartalom}
+                                                    onChange={e => setEditForm(p => ({ ...p, tartalom: e.target.value }))}
+                                                    rows={3}
+                                                    style={{ ...inputStyle, resize: 'vertical', marginBottom: '8px' }}
+                                                />
+                                                <div style={{ display: 'flex', gap: '8px', justifyContent: 'flex-end' }}>
+                                                    <button onClick={cancelEditNews} style={{
+                                                        background: 'rgba(255,100,100,0.2)', border: '1px solid rgba(255,100,100,0.4)',
+                                                        color: 'white', borderRadius: '8px', padding: '4px 12px', cursor: 'pointer', fontSize: '0.8rem'
+                                                    }}>✕ Mégse</button>
+                                                    <button onClick={() => handleUpdateNews(item.id)} disabled={editLoading} style={{
+                                                        background: 'rgba(100,200,100,0.2)', border: '1px solid rgba(100,200,100,0.4)',
+                                                        color: 'white', borderRadius: '8px', padding: '4px 12px', cursor: 'pointer', fontSize: '0.8rem'
+                                                    }}>{editLoading ? '...' : '✔ Mentés'}</button>
+                                                </div>
+                                            </div>
+                                        ) : (
+                                            /* NORMÁL MEGJELENÍTÉS */
+                                            <div>
+                                                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '8px' }}>
+                                                    <div style={{ minWidth: 0, flex: 1 }}>
+                                                        <div style={{ fontWeight: '700', fontSize: '0.95rem', letterSpacing: '0.5px', wordBreak: 'break-word' }}>{item.cim}</div>
+                                                        <div style={{ fontSize: '0.75rem', color: 'rgba(255,255,255,0.45)', marginBottom: '4px' }}>{item.datum}</div>
+                                                        <div style={{ fontSize: '0.85rem', color: 'rgba(255,255,255,0.8)', whiteSpace: 'pre-wrap', wordBreak: 'break-word', overflowWrap: 'break-word' }}>{item.tartalom}</div>
+                                                    </div>
+                                                    {isAdmin && (
+                                                        <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', flexShrink: 0 }}>
+                                                            <button onClick={() => startEditNews(item)} style={{
+                                                                background: 'rgba(136,152,240,0.2)', border: '1px solid rgba(136,152,240,0.4)',
+                                                                color: 'white', borderRadius: '6px', padding: '2px 8px',
+                                                                cursor: 'pointer', fontSize: '0.75rem'
+                                                            }}>✏️</button>
+                                                            <button onClick={() => handleDeleteNews(item.id)} style={{
+                                                                background: 'rgba(255,80,80,0.15)', border: '1px solid rgba(255,80,80,0.3)',
+                                                                color: '#ff6b6b', borderRadius: '6px', padding: '2px 8px',
+                                                                cursor: 'pointer', fontSize: '0.75rem'
+                                                            }}>🗑️</button>
+                                                        </div>
+                                                    )}
+                                                </div>
+                                            </div>
+                                        )}
+                                    </div>
+                                ))}
+                            </div>
+
+                            {/* Admin: Hozzáadás form */}
                             {isAdmin && (
-                                <div style={{ marginBottom: '12px' }}>
-                                    {!showNewsForm ? (
-                                        <button
-                                            onClick={() => setShowNewsForm(true)}
-                                            style={{
-                                                width: '100%',
-                                                background: 'rgba(136,152,240,0.15)',
-                                                border: '1px solid rgba(136,152,240,0.4)',
-                                                color: 'white', borderRadius: '10px',
-                                                padding: '7px', cursor: 'pointer',
-                                                fontSize: '0.85rem', fontWeight: '600',
-                                                letterSpacing: '1px'
-                                            }}
-                                            onMouseEnter={(e) => e.currentTarget.style.background = 'rgba(136,152,240,0.3)'}
-                                            onMouseLeave={(e) => e.currentTarget.style.background = 'rgba(136,152,240,0.15)'}
-                                        >
-                                            ＋ Új hír
-                                        </button>
-                                    ) : (
+                                <div style={{ marginTop: '10px' }}>
+                                    {showAddForm ? (
                                         <div style={{
-                                            background: 'rgba(255,255,255,0.05)',
-                                            border: '1px solid rgba(255,255,255,0.1)',
-                                            borderRadius: '12px', padding: '12px',
-                                            display: 'flex', flexDirection: 'column', gap: '8px'
+                                            background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.1)',
+                                            borderRadius: '10px', padding: '12px', marginBottom: '8px'
                                         }}>
                                             <input
-                                                type="text"
                                                 placeholder="Cím"
-                                                value={newCim}
-                                                onChange={(e) => setNewCim(e.target.value)}
-                                                style={{
-                                                    background: 'rgba(255,255,255,0.08)',
-                                                    border: '1px solid rgba(255,255,255,0.2)',
-                                                    borderRadius: '8px', color: 'white',
-                                                    padding: '8px 12px', fontSize: '0.85rem'
-                                                }}
-                                            />
-                                            <textarea
-                                                placeholder="Tartalom"
-                                                value={newTartalom}
-                                                onChange={(e) => setNewTartalom(e.target.value)}
-                                                rows={3}
-                                                style={{
-                                                    background: 'rgba(255,255,255,0.08)',
-                                                    border: '1px solid rgba(255,255,255,0.2)',
-                                                    borderRadius: '8px', color: 'white',
-                                                    padding: '8px 12px', fontSize: '0.85rem',
-                                                    resize: 'vertical'
-                                                }}
+                                                value={form.cim}
+                                                onChange={e => setForm(p => ({ ...p, cim: e.target.value }))}
+                                                style={inputStyle}
                                             />
                                             <input
                                                 type="date"
-                                                value={newDatum}
-                                                onChange={(e) => setNewDatum(e.target.value)}
-                                                style={{
-                                                    background: 'rgba(255,255,255,0.08)',
-                                                    border: '1px solid rgba(255,255,255,0.2)',
-                                                    borderRadius: '8px', color: 'white',
-                                                    padding: '8px 12px', fontSize: '0.85rem',
-                                                    colorScheme: 'dark'
-                                                }}
+                                                value={form.datum}
+                                                onChange={e => setForm(p => ({ ...p, datum: e.target.value }))}
+                                                style={inputStyle}
+                                            />
+                                            <textarea
+                                                placeholder="Tartalom"
+                                                value={form.tartalom}
+                                                onChange={e => setForm(p => ({ ...p, tartalom: e.target.value }))}
+                                                rows={3}
+                                                style={{ ...inputStyle, resize: 'vertical', marginBottom: '8px' }}
                                             />
                                             <div style={{ display: 'flex', gap: '8px', justifyContent: 'flex-end' }}>
-                                                <button onClick={() => { setShowNewsForm(false); setNewCim(''); setNewTartalom(''); setNewDatum(''); }} style={{
-                                                    background: 'rgba(255,100,100,0.15)', border: '1px solid rgba(255,100,100,0.3)',
-                                                    color: 'white', borderRadius: '8px', padding: '5px 14px',
-                                                    cursor: 'pointer', fontSize: '0.8rem'
-                                                }}>Mégse</button>
-                                                <button onClick={handleAddNews} disabled={newsLoading} style={{
-                                                    background: 'rgba(100,200,100,0.15)', border: '1px solid rgba(100,200,100,0.3)',
-                                                    color: 'white', borderRadius: '8px', padding: '5px 14px',
-                                                    cursor: 'pointer', fontSize: '0.8rem', fontWeight: '600'
-                                                }}>{newsLoading ? '...' : '✔ Mentés'}</button>
+                                                <button onClick={() => { setShowAddForm(false); setForm({ cim: '', datum: '', tartalom: '' }); }} style={{
+                                                    background: 'rgba(255,100,100,0.2)', border: '1px solid rgba(255,100,100,0.4)',
+                                                    color: 'white', borderRadius: '8px', padding: '4px 12px', cursor: 'pointer', fontSize: '0.8rem'
+                                                }}>✕ Mégse</button>
+                                                <button onClick={handleAddNews} disabled={formLoading} style={{
+                                                    background: 'rgba(100,200,100,0.2)', border: '1px solid rgba(100,200,100,0.4)',
+                                                    color: 'white', borderRadius: '8px', padding: '4px 12px', cursor: 'pointer', fontSize: '0.8rem'
+                                                }}>{formLoading ? '...' : '✔ Mentés'}</button>
                                             </div>
+                                        </div>
+                                    ) : (
+                                        <div style={{ display: 'flex', gap: '8px', justifyContent: 'flex-end' }}>
+                                            <button onClick={() => setShowAddForm(true)} style={{
+                                                background: 'rgba(100,200,100,0.2)', border: '1px solid rgba(100,200,100,0.4)',
+                                                color: 'white', borderRadius: '8px', padding: '4px 12px', cursor: 'pointer', fontSize: '0.8rem'
+                                            }}>＋ Hozzáadás</button>
                                         </div>
                                     )}
                                 </div>
-                            )}
-
-                            {/* Hírek listája */}
-                            {newsList.length === 0 ? (
-                                <p style={{ color: 'rgba(255,255,255,0.4)', textAlign: 'center', fontSize: '0.9rem' }}>
-                                    Még nincs hír.
-                                </p>
-                            ) : (
-                                newsList.map((news) => (
-                                    <div key={news.id} style={{
-                                        background: 'rgba(255,255,255,0.05)',
-                                        border: '1px solid rgba(255,255,255,0.08)',
-                                        borderRadius: '12px', padding: '12px',
-                                        marginBottom: '10px'
-                                    }}>
-                                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '6px' }}>
-                                            <span style={{ fontWeight: '700', fontSize: '0.95rem', letterSpacing: '0.5px' }}>
-                                                {news.cim}
-                                            </span>
-                                            <span style={{ fontSize: '0.75rem', color: 'rgba(255,255,255,0.4)', whiteSpace: 'nowrap', marginLeft: '8px' }}>
-                                                {news.datum}
-                                            </span>
-                                        </div>
-                                        <p style={{ fontSize: '0.85rem', opacity: 0.75, margin: 0, lineHeight: '1.5' }}>
-                                            {news.tartalom}
-                                        </p>
-                                        {isAdmin && (
-                                            <button
-                                                onClick={() => handleDeleteNews(news.id)}
-                                                style={{
-                                                    marginTop: '8px',
-                                                    background: 'rgba(255,100,100,0.1)',
-                                                    border: '1px solid rgba(255,100,100,0.2)',
-                                                    color: '#ff6b6b', borderRadius: '6px',
-                                                    padding: '2px 10px', cursor: 'pointer',
-                                                    fontSize: '0.75rem'
-                                                }}
-                                            >
-                                                🗑 Törlés
-                                            </button>
-                                        )}
-                                    </div>
-                                ))
                             )}
                         </Card>
 
                         {/* ABOUT KÁRTYA */}
                         <Card title="ABOUT THE GAME">
-                            {editingAbout ? (
-                                <textarea
-                                    value={aboutText}
-                                    onChange={(e) => setAboutText(e.target.value)}
+                            {/* SLIDESHOW */}
+                            {gallery.length > 0 && (
+                                <div
+                                    onClick={() => { setLightboxIndex(activeSlide); setLightboxOpen(true); }}
                                     style={{
-                                        width: '100%', minHeight: '150px',
-                                        background: 'rgba(255,255,255,0.05)',
-                                        border: '1px solid rgba(255,255,255,0.2)',
-                                        borderRadius: '10px', color: 'white',
-                                        padding: '10px', resize: 'vertical', fontSize: '0.9rem'
+                                        position: 'relative', width: '100%', paddingTop: '56.25%',
+                                        borderRadius: '10px', overflow: 'hidden', cursor: 'pointer',
+                                        marginBottom: '12px', background: 'rgba(0,0,0,0.3)'
+                                    }}
+                                >
+                                    {gallery.map((img, i) => (
+                                        <img key={img.id} src={imgSrc(img.url)} alt=""
+                                            style={{
+                                                position: 'absolute', top: 0, left: 0,
+                                                width: '100%', height: '100%', objectFit: 'cover',
+                                                opacity: i === activeSlide ? 1 : 0,
+                                                transition: 'opacity 0.8s ease'
+                                            }}
+                                        />
+                                    ))}
+                                    {/* Dots */}
+                                    {gallery.length > 1 && (
+                                        <div style={{
+                                            position: 'absolute', bottom: '8px', left: '50%',
+                                            transform: 'translateX(-50%)', display: 'flex', gap: '6px', zIndex: 2
+                                        }}>
+                                            {gallery.map((_, i) => (
+                                                <div key={i} style={{
+                                                    width: '7px', height: '7px', borderRadius: '50%',
+                                                    background: i === activeSlide ? 'white' : 'rgba(255,255,255,0.35)',
+                                                    transition: 'background 0.3s', boxShadow: '0 1px 3px rgba(0,0,0,0.5)'
+                                                }} />
+                                            ))}
+                                        </div>
+                                    )}
+                                    {/* Zoom hint */}
+                                    <div style={{
+                                        position: 'absolute', top: '8px', right: '8px',
+                                        background: 'rgba(0,0,0,0.55)', borderRadius: '6px',
+                                        padding: '3px 7px', fontSize: '0.7rem', zIndex: 2
+                                    }}>🔍</div>
+                                </div>
+                            )}
+
+                            {/* SZÖVEG */}
+                            {editing === 'about' ? (
+                                <textarea value={editText} onChange={(e) => setEditText(e.target.value)}
+                                    style={{
+                                        width: '100%', minHeight: '100px', background: 'rgba(255,255,255,0.05)',
+                                        border: '1px solid rgba(255,255,255,0.2)', borderRadius: '10px',
+                                        color: 'white', padding: '10px', resize: 'vertical', fontSize: '0.9rem'
                                     }}
                                 />
                             ) : (
-                                <p style={{ whiteSpace: 'pre-wrap' }}>{about.tartalom}</p>
+                                kartyak.about.tartalom && <p style={{ whiteSpace: 'pre-wrap', marginBottom: '8px' }}>{kartyak.about.tartalom}</p>
                             )}
+
+                            {/* ADMIN GOMBOK */}
                             {isAdmin && (
-                                <div style={{ marginTop: '10px', display: 'flex', gap: '8px', justifyContent: 'flex-end' }}>
-                                    {editingAbout ? (
+                                <div style={{ marginTop: '10px', display: 'flex', gap: '8px', justifyContent: 'flex-end', flexWrap: 'wrap' }}>
+                                    <button onClick={() => setShowGalleryAdmin(p => !p)} style={{
+                                        background: 'rgba(200,160,80,0.2)', border: '1px solid rgba(200,160,80,0.4)',
+                                        color: 'white', borderRadius: '8px', padding: '4px 12px',
+                                        cursor: 'pointer', fontSize: '0.8rem'
+                                    }}>🖼️ Képek</button>
+                                    {editing === 'about' ? (
                                         <>
-                                            <button onClick={() => setEditingAbout(false)} style={{
+                                            <button onClick={() => setEditing(null)} style={{
                                                 background: 'rgba(255,100,100,0.2)', border: '1px solid rgba(255,100,100,0.4)',
-                                                color: 'white', borderRadius: '8px', padding: '4px 12px',
-                                                cursor: 'pointer', fontSize: '0.8rem'
+                                                color: 'white', borderRadius: '8px', padding: '4px 12px', cursor: 'pointer', fontSize: '0.8rem'
                                             }}>✕ Mégse</button>
-                                            <button onClick={saveAbout} style={{
+                                            <button onClick={() => saveEdit('about')} style={{
                                                 background: 'rgba(100,200,100,0.2)', border: '1px solid rgba(100,200,100,0.4)',
-                                                color: 'white', borderRadius: '8px', padding: '4px 12px',
-                                                cursor: 'pointer', fontSize: '0.8rem'
+                                                color: 'white', borderRadius: '8px', padding: '4px 12px', cursor: 'pointer', fontSize: '0.8rem'
                                             }}>✔ Mentés</button>
                                         </>
                                     ) : (
-                                        <button onClick={() => setEditingAbout(true)} style={{
+                                        <button onClick={() => startEdit('about')} style={{
                                             background: 'rgba(136,152,240,0.2)', border: '1px solid rgba(136,152,240,0.4)',
-                                            color: 'white', borderRadius: '8px', padding: '4px 12px',
-                                            cursor: 'pointer', fontSize: '0.8rem', letterSpacing: '0.5px'
+                                            color: 'white', borderRadius: '8px', padding: '4px 12px', cursor: 'pointer', fontSize: '0.8rem'
                                         }}>✏️ Szerkesztés</button>
                                     )}
+                                </div>
+                            )}
+
+                            {/* GALLERY ADMIN PANEL */}
+                            {isAdmin && showGalleryAdmin && (
+                                <div style={{
+                                    marginTop: '10px', background: 'rgba(255,255,255,0.04)',
+                                    border: '1px solid rgba(255,255,255,0.1)', borderRadius: '10px', padding: '10px'
+                                }}>
+                                    {gallery.length === 0 && (
+                                        <p style={{ fontSize: '0.8rem', color: 'rgba(255,255,255,0.4)', marginBottom: '8px' }}>Még nincs kép.</p>
+                                    )}
+                                    {gallery.map(img => (
+                                        <div key={img.id} style={{
+                                            display: 'flex', gap: '8px', alignItems: 'center', marginBottom: '6px'
+                                        }}>
+                                            <img src={imgSrc(img.url)} alt="" style={{
+                                                width: '56px', height: '36px', objectFit: 'cover',
+                                                borderRadius: '4px', flexShrink: 0,
+                                                background: 'rgba(0,0,0,0.3)'
+                                            }} onError={e => e.target.style.opacity = '0.3'} />
+                                            <span style={{
+                                                flex: 1, fontSize: '0.72rem', color: 'rgba(255,255,255,0.5)',
+                                                overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap'
+                                            }}>{img.url}</span>
+                                            <button onClick={() => handleDeleteGalleryImage(img.id)} style={{
+                                                background: 'rgba(255,80,80,0.15)', border: '1px solid rgba(255,80,80,0.3)',
+                                                color: '#ff6b6b', borderRadius: '6px', padding: '2px 7px',
+                                                cursor: 'pointer', fontSize: '0.75rem', flexShrink: 0
+                                            }}>🗑️</button>
+                                        </div>
+                                    ))}
+                                    <label style={{
+                                        display: 'flex', alignItems: 'center', justifyContent: 'center',
+                                        gap: '8px', marginTop: '8px', padding: '8px 16px',
+                                        background: uploadLoading ? 'rgba(100,200,100,0.1)' : 'rgba(100,200,100,0.2)',
+                                        border: '1px dashed rgba(100,200,100,0.5)',
+                                        borderRadius: '8px', cursor: uploadLoading ? 'wait' : 'pointer',
+                                        color: 'white', fontSize: '0.85rem', transition: 'background 0.2s'
+                                    }}>
+                                        {uploadLoading ? '⏳ Feltöltés...' : '＋ Kép kiválasztása'}
+                                        <input
+                                            type="file"
+                                            accept="image/*"
+                                            style={{ display: 'none' }}
+                                            onChange={handleUploadImage}
+                                            disabled={uploadLoading}
+                                        />
+                                    </label>
                                 </div>
                             )}
                         </Card>
@@ -335,5 +537,82 @@ export default function Home() {
                 </div>
             </div>
         </div>
+
+        {/* LIGHTBOX */}
+        {lightboxOpen && gallery.length > 0 && (
+            <div
+                onClick={() => setLightboxOpen(false)}
+                style={{
+                    position: 'fixed', top: 0, left: 0, width: '100%', height: '100%',
+                    background: 'rgba(0,0,0,0.92)', zIndex: 99999,
+                    display: 'flex', alignItems: 'center', justifyContent: 'center'
+                }}
+            >
+                {/* Bezárás */}
+                <button
+                    onClick={() => setLightboxOpen(false)}
+                    style={{
+                        position: 'absolute', top: '20px', right: '24px',
+                        background: 'rgba(255,255,255,0.1)', border: '1px solid rgba(255,255,255,0.2)',
+                        color: 'white', fontSize: '1.3rem', cursor: 'pointer',
+                        borderRadius: '50%', width: '42px', height: '42px',
+                        display: 'flex', alignItems: 'center', justifyContent: 'center',
+                        zIndex: 2
+                    }}
+                >✕</button>
+
+                {/* Kép */}
+                <img
+                    src={imgSrc(gallery[lightboxIndex]?.url)} alt=""
+                    onClick={e => e.stopPropagation()}
+                    style={{
+                        maxWidth: '88vw', maxHeight: '82vh',
+                        objectFit: 'contain', borderRadius: '10px',
+                        boxShadow: '0 0 60px rgba(0,0,0,0.8)'
+                    }}
+                />
+
+                {/* Számlálő */}
+                <div style={{
+                    position: 'absolute', bottom: '24px', left: '50%', transform: 'translateX(-50%)',
+                    color: 'rgba(255,255,255,0.6)', fontSize: '0.85rem', letterSpacing: '1px'
+                }}>
+                    {lightboxIndex + 1} / {gallery.length}
+                </div>
+
+                {/* Prev / Next */}
+                {gallery.length > 1 && (
+                    <>
+                        <button
+                            onClick={e => { e.stopPropagation(); setLightboxIndex(p => (p - 1 + gallery.length) % gallery.length); }}
+                            style={{
+                                position: 'absolute', left: '20px',
+                                background: 'rgba(255,255,255,0.1)', border: '1px solid rgba(255,255,255,0.2)',
+                                color: 'white', fontSize: '2rem', cursor: 'pointer',
+                                borderRadius: '50%', width: '52px', height: '52px',
+                                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                                transition: 'background 0.2s'
+                            }}
+                            onMouseEnter={e => e.currentTarget.style.background = 'rgba(255,255,255,0.2)'}
+                            onMouseLeave={e => e.currentTarget.style.background = 'rgba(255,255,255,0.1)'}
+                        >‹</button>
+                        <button
+                            onClick={e => { e.stopPropagation(); setLightboxIndex(p => (p + 1) % gallery.length); }}
+                            style={{
+                                position: 'absolute', right: '20px',
+                                background: 'rgba(255,255,255,0.1)', border: '1px solid rgba(255,255,255,0.2)',
+                                color: 'white', fontSize: '2rem', cursor: 'pointer',
+                                borderRadius: '50%', width: '52px', height: '52px',
+                                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                                transition: 'background 0.2s'
+                            }}
+                            onMouseEnter={e => e.currentTarget.style.background = 'rgba(255,255,255,0.2)'}
+                            onMouseLeave={e => e.currentTarget.style.background = 'rgba(255,255,255,0.1)'}
+                        >›</button>
+                    </>
+                )}
+            </div>
+        )}
+        </>
     );
 }
