@@ -88,18 +88,24 @@ export default function Register() {
                     style={{ width: '40px', height: '40px', filter: 'invert(1) brightness(2)' }} />
             </div>
 
+            {/* Navbar iOS Safari fix */}
+            <Navbar />
+
             <div style={{
                 position: "relative", zIndex: 2, height: "100vh",
                 overflowY: "auto", width: "100%",
                 display: "flex", flexDirection: "column", alignItems: "center"
-            }}>
-                <Navbar />
+            }}
+                onScroll={(e) => window.dispatchEvent(new CustomEvent('pageScroll', { detail: e.currentTarget.scrollTop }))}
+            >
                 <div style={{
                     display: "flex", justifyContent: "center",
-                    alignItems: "center", flexGrow: 1, width: "100%"
+                    alignItems: "flex-start",
+                    paddingTop: "110px", paddingBottom: "40px",
+                    width: "100%"
                 }}>
-                    <Card width="800px" height="600px" title="CREATE AN ACCOUNT">
-                        <div className="px-5 py-4">
+                    <Card width="800px" height="auto" title="CREATE AN ACCOUNT">
+                        <div className="px-3 px-md-5 py-4">
                             <div className="row g-3 mb-3">
                                 <div className="col-md-6">
                                     <TextBox placeholder="First Name" type="text" value={First_Name} setValue={setF_name} />

@@ -1,4 +1,4 @@
-const BASE = 'http://localhost:3000';
+const BASE = `http://${window.location.hostname}:3000`;
 
 export const regisztracio = (User_Name, First_Name, Last_Name, Email, Password) =>
     fetch(`${BASE}/regisztracio`, {

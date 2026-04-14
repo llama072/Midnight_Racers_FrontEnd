@@ -61,11 +61,13 @@ export default function FAQ() {
                     style={{ width: '40px', height: '40px', filter: 'invert(1) brightness(2)' }} />
             </div>
 
+            {/* Navbar iOS Safari fix */}
+            <Navbar />
+
             <div style={{
                 position: 'relative', zIndex: 2, height: '100vh',
                 width: '100vw', overflowY: 'auto', display: 'flex', flexDirection: 'column'
-            }}>
-                <Navbar />
+            }} onScroll={(e) => window.dispatchEvent(new CustomEvent('pageScroll', { detail: e.currentTarget.scrollTop }))}>
                 <div style={{
                     paddingTop: '130px', paddingBottom: '50px',
                     display: 'flex', flexDirection: 'column', alignItems: 'center'

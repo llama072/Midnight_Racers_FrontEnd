@@ -1,14 +1,37 @@
 import React, { useState, useEffect } from 'react';
 import LoginButton from "./LoginButton";
 import logo from "../assets/logo.png";
+import MoonIcon from "../assets/moon.png";
+import SunIcon from "../assets/sun.png";
 import { Link, useNavigate } from "react-router-dom";
 import { kijelentkezes } from "../../api";
+import { useTheme } from "../context/ThemeContext";
 
 export default function Navbar({ onMenuToggle }) {
     const [isOpen, setIsOpen] = useState(false);
     const [user, setUser] = useState(null);
     const [showMenu, setShowMenu] = useState(false);
+    const [isHidden, setIsHidden] = useState(false);
+    const lastScrollRef = React.useRef(0);
     const navigate = useNavigate();
+    const { isDarkMode, toggleTheme } = useTheme();
+
+    // Hide navbar on scroll down, show on scroll up
+    useEffect(() => {
+        const handler = (e) => {
+            if (isOpen) return; // ne rejtse el ha a menü nyitva van
+            const current = e.detail;
+            const prev = lastScrollRef.current;
+            if (current > prev && current > 80) {
+                setIsHidden(true);
+            } else if (current < prev - 5 || current <= 30) {
+                setIsHidden(false);
+            }
+            lastScrollRef.current = current;
+        };
+        window.addEventListener('pageScroll', handler);
+        return () => window.removeEventListener('pageScroll', handler);
+    }, [isOpen]);
 
     useEffect(() => {
         const storedUser = localStorage.getItem("user");
@@ -33,12 +56,19 @@ export default function Navbar({ onMenuToggle }) {
     const closeMenu = () => { setIsOpen(false); onMenuToggle?.(false); document.body.classList.remove('menu-open'); };
 
     return (
-        <nav className="navbar navbar-expand-lg fixed-top px-lg-5 py-1" style={{ zIndex: isOpen ? 10000 : undefined }}>
+        <nav
+            className="navbar navbar-expand-lg fixed-top px-lg-5 py-1"
+            style={{
+                zIndex: isOpen ? 10000 : 1030,
+                transform: isHidden ? 'translateY(-100%)' : 'translateY(0)',
+                transition: 'transform 0.35s ease'
+            }}
+        >
             <div className="container-fluid d-flex justify-content-between align-items-center">
 
                 {/* BAL OLDAL: LOGÓ */}
                 <div className="col-4 d-flex justify-content-start">
-                    <img src={logo} alt="Logo" className="img-fluid" style={{ height: '110px' }} />
+                    <img src={logo} alt="Logo" className="img-fluid navbar-logo" style={{ height: 'var(--navbar-logo-h, 110px)' }} />
                 </div>
 
                 {/* KÖZÉPSŐ MENÜ */}
@@ -61,6 +91,26 @@ export default function Navbar({ onMenuToggle }) {
                         <Link to="/Updates"  className="nav-link text-white fw-bold px-3" onClick={closeMenu}>UPDATES</Link>
                         <Link to="/Donate"   className="nav-link text-white fw-bold px-3" onClick={closeMenu}>DONATE</Link>
                         <Link to="/FAQ"      className="nav-link text-white fw-bold px-3" onClick={closeMenu}>FAQ</Link>
+
+                        {/* TEMA VALTÓ - csak mobilon */}
+                        <button
+                            onClick={toggleTheme}
+                            className="d-lg-none"
+                            style={{
+                                background: 'none', border: 'none', cursor: 'pointer',
+                                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                                gap: '14px', color: 'white', fontWeight: 'bold',
+                                fontSize: '1.6rem', letterSpacing: '2px',
+                                padding: '0 12px', fontFamily: 'inherit'
+                            }}
+                        >
+                            <img
+                                src={isDarkMode ? SunIcon : MoonIcon}
+                                alt="theme"
+                                style={{ width: '30px', filter: 'invert(1) brightness(2)' }}
+                            />
+                            {isDarkMode ? 'LIGHT MODE' : 'DARK MODE'}
+                        </button>
                     </div>
                 </div>
 

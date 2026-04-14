@@ -78,17 +78,23 @@ export default function Login() {
                     style={{ width: '40px', height: '40px', filter: 'invert(1) brightness(2)' }} />
             </div>
 
+            {/* Navbar iOS Safari fix */}
+            <Navbar />
+
             <div className="no-scrollbar" style={{
                 position: "relative", zIndex: 2, height: "100vh",
                 overflowY: "auto", width: "100%",
                 display: "flex", flexDirection: "column", alignItems: "center"
-            }}>
-                <Navbar />
-                <div style={{
+            }}
+                onScroll={(e) => window.dispatchEvent(new CustomEvent('pageScroll', { detail: e.currentTarget.scrollTop }))}
+            >
+                <div className="login-card-wrapper" style={{
                     display: "flex", justifyContent: "center",
-                    alignItems: "center", flexGrow: 1, width: "100%"
+                    alignItems: "center",
+                    flexGrow: 1, width: "100%",
+                    paddingBottom: "40px"
                 }}>
-                    <Card width="500px" height="450px" title="LOGIN">
+                    <Card width="500px" height="auto" title="LOGIN">
                         <div className="login-content p-4">
                             <div className="mb-3">
                                 <TextBox

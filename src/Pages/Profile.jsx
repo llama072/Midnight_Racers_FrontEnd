@@ -121,12 +121,14 @@ export default function Profile() {
                     style={{ width: '40px', height: '40px', filter: 'invert(1) brightness(2)' }} />
             </div>
 
+            {/* Navbar iOS Safari fix */}
+            <Navbar />
+
             <div style={{
                 position: "relative", zIndex: 2, height: "100vh",
                 overflowY: "auto", width: "100%",
                 display: "flex", flexDirection: "column", alignItems: "center"
-            }}>
-                <Navbar />
+            }} onScroll={(e) => window.dispatchEvent(new CustomEvent('pageScroll', { detail: e.currentTarget.scrollTop }))}>
                 <div style={{
                     display: "flex", justifyContent: "center",
                     alignItems: "center", flexGrow: 1, width: "100%"

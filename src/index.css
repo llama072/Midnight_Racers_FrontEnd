@@ -23,16 +23,6 @@ a, .nav-link, .dropdown-item {
   display: none !important;
 }
 
-.card-container {
-  display: flex;
-  flex-direction: row;
-  justify-content: center;
-  gap: 30px;
-  padding: 20px;
-  width: 100%;
-}
-
-
 /* Ez a rész felel a placeholder színéért minden böngészőben */
 input::placeholder {
   color: rgba(255, 255, 255, 0.8) !important; /* Majdnem tiszta fehér */
@@ -47,16 +37,17 @@ input::placeholder {
 /* MOBIL NÉZET (1000px alatt): Egymás alá kerülnek */
 @media (max-width: 1000px) {
   .card-container {
-      flex-direction: column !important; /* Egymás alá kényszeríti őket */
+      flex-direction: column !important;
       align-items: center !important;
-      gap: 20px !important;
-      margin-top: 20px !important;
+      gap: 15px !important;
+      margin-top: 10px !important;
+      padding: 0 12px 20px !important;
   }
 
   /* Biztosítjuk, hogy a kártyák ne legyenek túl szélesek mobilon */
   .card-container > div {
-      width: 90% !important;
-      max-width: 400px;
+      width: 92% !important;
+      max-width: 420px !important;
   }
 }
 /* Csak akkor jelenjen meg az X, ha a wrapper megkapja az .open osztályt */
@@ -153,15 +144,14 @@ input::placeholder {
 }
 
 @media (max-width: 768px) {
-  /* Mobilon a kártyák legyenek keskenyebbek, hogy elférjenek */
+  /* Mobilon a kártyák legyenek szélesek, de ne lógjon ki semmi */
   .card-container > div {
       width: 95% !important;
-      max-width: 320px;
+      max-width: 400px !important;
   }
-  
-  /* A padding segít, hogy ne ragadjon a képernyő tetejéhez a kártya */
+
   .container-fluid {
-      padding-top: 20px !important;
+      padding-top: 10px !important;
   }
 }
 
@@ -171,6 +161,77 @@ body.menu-open .theme-toggle {
 
 .no-scrollbar::-webkit-scrollbar { display: none; }
 .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+
+/* ===================== */
+/* NAVBAR LOGO           */
+/* ===================== */
+:root {
+  --navbar-logo-h: 110px;
+}
+
+@media (max-width: 991px) {
+  :root { --navbar-logo-h: 70px; }
+}
+
+@media (max-width: 576px) {
+  :root { --navbar-logo-h: 58px; }
+}
+
+.navbar-logo {
+  height: var(--navbar-logo-h) !important;
+  width: auto !important;
+}
+
+/* ===================== */
+/* LOGIN CARD – mobilon ne takarjon a navbar */
+/* ===================== */
+@media (max-width: 991px) {
+  .login-card-wrapper {
+    align-items: flex-start !important;
+    padding-top: 90px !important;
+  }
+}
+
+/* ===================== */
+/* HOME TITLE            */
+/* ===================== */
+.home-title {
+  font-size: clamp(28px, 8vw, 65px) !important;
+  letter-spacing: clamp(2px, 1.5vw, 5px) !important;
+  margin-bottom: 1.5rem !important;
+}
+
+/* ===================== */
+/* CARD CONTAINER MOBIL  */
+/* ===================== */
+.card-container {
+  display: flex;
+  flex-direction: row;
+  justify-content: center;
+  gap: 30px;
+  padding: 20px;
+  width: 100%;
+  flex-wrap: wrap;
+}
+
+/* ===================== */
+/* MOBIL NAV MENU FINOMÍTÁS */
+/* ===================== */
+@media (max-width: 991px) {
+  .nav-link {
+    font-size: 1.6rem !important;
+    letter-spacing: 2px;
+  }
+
+  .pill-blur {
+    gap: 24px !important;
+  }
+
+  /* Lebegő témaváltó gomb elrejtése mobilon (hamburger menübe kerül) */
+  .theme-toggle {
+    display: none !important;
+  }
+}
 
 .tick-icon {
   position: absolute;

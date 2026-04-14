@@ -50,11 +50,13 @@ export default function Download() {
                     style={{ width: '40px', height: '40px', filter: 'invert(1) brightness(2)' }} />
             </div>
 
+            {/* Navbar iOS Safari fix */}
+            <Navbar />
+
             <div style={{
                 position: 'relative', zIndex: 2, height: '100vh',
                 width: '100vw', overflowY: 'auto', display: 'flex', flexDirection: 'column'
-            }}>
-                <Navbar />
+            }} onScroll={(e) => window.dispatchEvent(new CustomEvent('pageScroll', { detail: e.currentTarget.scrollTop }))}>
                 <div className="container-fluid d-flex flex-grow-1 justify-content-center align-items-center"
                     style={{ padding: '20px', minHeight: '80vh' }}>
                     <Card title="DOWNLOAD">
@@ -65,10 +67,15 @@ export default function Download() {
                                 </p>
                             </div>
                             <div className="mt-auto pb-3">
-                                <button className="btn btn-outline-light px-5 py-2 fw-bold"
-                                    style={{ borderRadius: '10px', letterSpacing: '2px' }}>
+                                <a
+                                    href="https://drive.google.com/uc?export=download&id=1L0eZibExeAbCgHK7ypPROTz3RcMWIKdD"
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="btn btn-outline-light px-5 py-2 fw-bold"
+                                    style={{ borderRadius: '10px', letterSpacing: '2px', textDecoration: 'none' }}
+                                >
                                     DOWNLOAD HERE
-                                </button>
+                                </a>
                             </div>
                         </div>
                     </Card>

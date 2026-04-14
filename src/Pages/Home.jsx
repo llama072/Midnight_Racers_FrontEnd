@@ -9,7 +9,7 @@ import { useTheme } from "../context/ThemeContext";
 import { getHomeKartyak, updateHomeKartya, getNews, addNews, updateNews, deleteNews, getAboutGallery, uploadAboutGalleryImage, deleteAboutGalleryImage } from "../../api";
 import 'bootstrap/dist/css/bootstrap.min.css';
 
-const BACKEND = 'http://localhost:3000';
+const BACKEND = `http://${window.location.hostname}:3000`;
 const imgSrc = (url) => url?.startsWith('/uploads/') ? `${BACKEND}${url}` : url;
 
 const inputStyle = {
@@ -247,29 +247,30 @@ export default function Home() {
                     style={{ width: '40px', height: '40px', filter: 'invert(1) brightness(2)' }} />
             </div>
 
+            {/* Navbar az overflow:auto konténeren KÍVÜL – iOS Safari fix */}
+            <Navbar />
+
             <div className="no-scrollbar" style={{
                 position: 'relative', zIndex: 2, height: '100vh',
                 overflowY: 'auto', width: '100%',
                 display: 'flex', flexDirection: 'column', alignItems: 'center'
-            }}>
-                <Navbar />
+            }}
+                onScroll={(e) => window.dispatchEvent(new CustomEvent('pageScroll', { detail: e.currentTarget.scrollTop }))}
+            >
 
                 <div style={{
                     display: 'flex', flexDirection: 'column', alignItems: 'center',
-                    marginTop: '15vh', width: '100%', flexShrink: 0
+                    marginTop: 'clamp(120px, 15vh, 160px)', width: '100%', flexShrink: 0
                 }}>
-                    <h1 className="display-1 text-white mb-5 text-center" style={{
+                    <h1 className="home-title display-1 text-white mb-4 text-center" style={{
                         fontFamily: "'Orbitron', sans-serif", fontWeight: '900',
-                        letterSpacing: '5px', fontSize: '65px',
+                        letterSpacing: '5px',
                         textShadow: isDarkMode ? '0 0 20px rgba(255,255,255,0.2)' : 'none'
                     }}>
                         MIDNIGHT RACERS
                     </h1>
 
-                    <div className="card-container" style={{
-                        display: 'flex', justifyContent: 'center',
-                        gap: '40px', width: '100%', padding: '0 20px'
-                    }}>
+                    <div className="card-container">
                         {/* NEWS KÁRTYA */}
                         <Card title="NEWS">
                             {/* News lista */}
