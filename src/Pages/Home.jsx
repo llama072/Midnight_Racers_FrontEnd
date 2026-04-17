@@ -2,10 +2,9 @@ import { useState, useEffect } from "react";
 import Navbar from "../components/Navbar";
 import Card from "../components/Card";
 import PageWrapper from "../components/PageWrapper";
-import { getHomeKartyak, updateHomeKartya, getNews, addNews, updateNews, deleteNews, getAboutGallery, uploadAboutGalleryImage, deleteAboutGalleryImage } from "../../api";
+import { getHomeKartyak, updateHomeKartya, getNews, addNews, updateNews, deleteNews, getAboutGallery, uploadAboutGalleryImage, deleteAboutGalleryImage, BASE } from "../../api";
 
-const BACKEND = `http://${window.location.hostname}:3000`;
-const imgSrc = (url) => url?.startsWith('/uploads/') ? `${BACKEND}${url}` : url;
+const imgSrc = (url) => url?.startsWith('/uploads/') ? `${BASE}${url}` : url;
 
 const inputStyle = {
     width: '100%', background: 'rgba(255,255,255,0.05)',
