@@ -1,4 +1,4 @@
-const BASE = `http://${window.location.hostname}:3000`;
+const BASE = `https://nodejs216.dszcbaross.edu.hu`;
 
 export const regisztracio = (User_Name, First_Name, Last_Name, Email, Password) =>
     fetch(`${BASE}/regisztracio`, {
