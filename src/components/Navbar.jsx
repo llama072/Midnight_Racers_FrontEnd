@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import LoginButton from "./LoginButton";
-import logo from "../assets/logo.png";
+import logo from "../assets/Logo.png";
 import MoonIcon from "../assets/moon.png";
 import SunIcon from "../assets/sun.png";
 import { Link, useNavigate } from "react-router-dom";
