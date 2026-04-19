@@ -112,6 +112,23 @@ input::placeholder {
   .nav-links-wrapper.open { right: 0; }
   .pill-blur { flex-direction: column; background: none; border: none; gap: 30px; }
   .nav-link { font-size: 2rem !important; }
+
+  .mobile-profile-section {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: 100%;
+  }
+  .mobile-profile-submenu .nav-link {
+    font-size: 1.4rem !important;
+  }
+  .mobile-profile-submenu {
+    animation: profileSlideDown 0.25s ease;
+  }
+  @keyframes profileSlideDown {
+    from { opacity: 0; transform: translateY(-6px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
 }
 
 .hamburger-icon { flex-direction: column; gap: 6px; }

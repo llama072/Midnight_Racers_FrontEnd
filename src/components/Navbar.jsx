@@ -11,6 +11,7 @@ export default function Navbar({ onMenuToggle }) {
     const [isOpen, setIsOpen] = useState(false);
     const [user, setUser] = useState(null);
     const [showMenu, setShowMenu] = useState(false);
+    const [profileExpanded, setProfileExpanded] = useState(false);
     const [isHidden, setIsHidden] = useState(false);
     const lastScrollRef = React.useRef(0);
     const navigate = useNavigate();
@@ -53,7 +54,12 @@ export default function Navbar({ onMenuToggle }) {
     };
 
     const openMenu = () => { setIsOpen(true); onMenuToggle?.(true); document.body.classList.add('menu-open'); };
-    const closeMenu = () => { setIsOpen(false); onMenuToggle?.(false); document.body.classList.remove('menu-open'); };
+    const closeMenu = () => {
+        setIsOpen(false);
+        onMenuToggle?.(false);
+        document.body.classList.remove('menu-open');
+        setProfileExpanded(false);
+    };
 
     return (
         <nav
@@ -87,6 +93,61 @@ export default function Navbar({ onMenuToggle }) {
                             </Link>
                         )}
                         <Link to="/"         className="nav-link text-white fw-bold px-3" onClick={closeMenu}>HOME</Link>
+
+                        {/* PROFILE - csak mobilon, ha be van jelentkezve */}
+                        {user && (
+                            <div className="d-lg-none mobile-profile-section">
+                                <button
+                                    type="button"
+                                    onClick={() => setProfileExpanded(prev => !prev)}
+                                    className="nav-link text-white fw-bold px-3 mobile-profile-toggle"
+                                    style={{
+                                        background: 'none', border: 'none',
+                                        display: 'flex', alignItems: 'center', justifyContent: 'center',
+                                        gap: '12px', fontFamily: 'inherit', cursor: 'pointer',
+                                        width: '100%'
+                                    }}
+                                >
+                                    PROFILE
+                                    <span style={{
+                                        fontSize: '0.9rem',
+                                        transition: 'transform 0.3s',
+                                        transform: profileExpanded ? 'rotate(180deg)' : 'rotate(0deg)',
+                                        display: 'inline-block'
+                                    }}>▼</span>
+                                </button>
+                                {profileExpanded && (
+                                    <div className="mobile-profile-submenu" style={{
+                                        display: 'flex', flexDirection: 'column',
+                                        alignItems: 'center', gap: '18px',
+                                        marginTop: '18px'
+                                    }}>
+                                        <Link
+                                            to="/Stats"
+                                            onClick={closeMenu}
+                                            className="nav-link text-white fw-bold"
+                                            style={{ fontSize: '1.4rem', opacity: 0.85 }}
+                                        >
+                                            STATS
+                                        </Link>
+                                        <button
+                                            type="button"
+                                            onClick={() => { closeMenu(); handleLogout(); }}
+                                            className="nav-link fw-bold"
+                                            style={{
+                                                background: 'none', border: 'none',
+                                                color: '#ff6b6b', fontSize: '1.4rem',
+                                                cursor: 'pointer', fontFamily: 'inherit',
+                                                letterSpacing: '1.5px'
+                                            }}
+                                        >
+                                            LOG OUT
+                                        </button>
+                                    </div>
+                                )}
+                            </div>
+                        )}
+
                         <Link to="/Download" className="nav-link text-white fw-bold px-3" onClick={closeMenu}>DOWNLOAD</Link>
                         <Link to="/Updates"  className="nav-link text-white fw-bold px-3" onClick={closeMenu}>UPDATES</Link>
                         <Link to="/Donate"   className="nav-link text-white fw-bold px-3" onClick={closeMenu}>DONATE</Link>
