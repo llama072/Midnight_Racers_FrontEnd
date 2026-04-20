@@ -16,7 +16,7 @@ export default function Download() {
                         </div>
                         <div className="mt-auto pb-3">
                             <a
-                                href="https://drive.google.com/uc?export=download&id=1L0eZibExeAbCgHK7ypPROTz3RcMWIKdD"
+                                href="https://drive.google.com/file/d/1khS87JeTGvuYguA0X17PZ3KvlAkvvEGQ/view"
                                 target="_blank"
                                 rel="noopener noreferrer"
                                 className="btn btn-outline-light px-5 py-2 fw-bold"
