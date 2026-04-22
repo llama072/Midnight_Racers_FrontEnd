@@ -4,7 +4,7 @@ import logo from "../assets/Logo.png";
 import MoonIcon from "../assets/moon.png";
 import SunIcon from "../assets/sun.png";
 import { Link, useNavigate } from "react-router-dom";
-import { kijelentkezes } from "../../api";
+import { kijelentkezes, getMe } from "../../api";
 import { useTheme } from "../context/ThemeContext";
 
 export default function Navbar({ onMenuToggle }) {
@@ -35,11 +35,23 @@ export default function Navbar({ onMenuToggle }) {
     }, [isOpen]);
 
     useEffect(() => {
+        // Gyors UI megjelenites cache-bol (csak 'name' van tarolva), aztan frissitjuk a szerverrol
         const storedUser = localStorage.getItem("user");
         if (storedUser) {
             try { setUser(JSON.parse(storedUser)); }
             catch (error) { console.error("User error:", error); }
         }
+        // BIZTONSAG: a valos identitast a szerver /me-bol kerjuk le
+        getMe().then(data => {
+            if (data) {
+                setUser(data);
+                localStorage.setItem("user", JSON.stringify({ name: data.name }));
+            } else {
+                // nincs ervenyes session -> takaritunk
+                localStorage.removeItem("user");
+                setUser(null);
+            }
+        });
     }, []);
 
     const handleLogout = async () => {
@@ -122,6 +134,14 @@ export default function Navbar({ onMenuToggle }) {
                                         alignItems: 'center', gap: '18px',
                                         marginTop: '18px'
                                     }}>
+                                        <Link
+                                            to="/Profile"
+                                            onClick={closeMenu}
+                                            className="nav-link text-white fw-bold"
+                                            style={{ fontSize: '1.4rem', opacity: 0.85 }}
+                                        >
+                                            ACCOUNT
+                                        </Link>
                                         <Link
                                             to="/Stats"
                                             onClick={closeMenu}

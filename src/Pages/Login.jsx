@@ -20,7 +20,9 @@ export default function Login() {
             const res = await bejelentkezes(felhasznalonev, jelszo);
             if (res.result) {
                 alert(res.message || "Sikeres belépés!");
-                localStorage.setItem("user", JSON.stringify(res.user));
+                // Csak a nevet cache-eljuk UI-hoz. Az is_admin-t a backend /me endpointjarol kerjuk le,
+                // igy a localStorage manipulacio nem tud adminna tenni senkit.
+                localStorage.setItem("user", JSON.stringify({ name: res.user?.name }));
                 navigate("/");
                 window.location.reload();
             } else {

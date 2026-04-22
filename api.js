@@ -1,4 +1,6 @@
-export const BASE = `https://nodejs216.dszcbaross.edu.hu`;
+// BASE URL kornyezettol fuggoen. Vite .env fajlbol olvassa a VITE_API_BASE-t.
+// Ha nincs beallitva, a prod szerverre mutat (biztos-halo).
+export const BASE = import.meta.env.VITE_API_BASE || `https://nodejs216.dszcbaross.edu.hu`;
 
 const TOKEN_KEY = 'auth_token';
 
@@ -43,6 +45,16 @@ export const bejelentkezes = (User_Name, Password) =>
         return { result: r.ok, ...data };
     });
 
+// ---- /me: szerveroldali, megbízható user info (is_admin is innen jön) ----
+export const getMe = () =>
+    fetch(`${BASE}/me`, {
+        credentials: 'include',
+        headers: authHeaders()
+    }).then(async r => {
+        if (!r.ok) return null;
+        return r.json();
+    }).catch(() => null);
+
 // ---- KIJELENTKEZES ----
 export const kijelentkezes = () =>
     fetch(`${BASE}/kijelentkezes`, {
@@ -74,6 +86,15 @@ export const updatePassword = (currentPassword, newPassword) =>
         credentials: 'include',
         headers: authHeaders({ 'Content-Type': 'application/json' }),
         body: JSON.stringify({ currentPassword, newPassword })
+    }).then(r => r.json());
+
+// ---- FIOK TORLES ----
+export const deleteProfile = (currentPassword) =>
+    fetch(`${BASE}/profil-delete`, {
+        method: 'DELETE',
+        credentials: 'include',
+        headers: authHeaders({ 'Content-Type': 'application/json' }),
+        body: JSON.stringify({ currentPassword })
     }).then(r => r.json());
 
 // ---- HOME KÁRTYÁK ----

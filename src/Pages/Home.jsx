@@ -2,7 +2,8 @@ import { useState, useEffect } from "react";
 import Navbar from "../components/Navbar";
 import Card from "../components/Card";
 import PageWrapper from "../components/PageWrapper";
-import { getHomeKartyak, updateHomeKartya, getNews, addNews, updateNews, deleteNews, getAboutGallery, uploadAboutGalleryImage, deleteAboutGalleryImage, BASE } from "../../api";
+import Modal from "../components/Modal";
+import { getHomeKartyak, updateHomeKartya, getNews, addNews, updateNews, deleteNews, getAboutGallery, uploadAboutGalleryImage, deleteAboutGalleryImage, getMe, BASE } from "../../api";
 
 const imgSrc = (url) => url?.startsWith('/uploads/') ? `${BASE}${url}` : url;
 
@@ -22,32 +23,39 @@ export default function Home() {
         news:  { id: 'news',  tartalom: 'Töltés...' },
         about: { id: 'about', tartalom: 'Töltés...' }
     });
-    const [editing, setEditing] = useState(null);
-    const [editText, setEditText] = useState('');
 
     // News lista
     const [newsList, setNewsList] = useState([]);
-    const [showAddForm, setShowAddForm] = useState(false);
+
+    // --- ADMIN MODAL STATE-EK ---
+    // News hozzaadas
+    const [addNewsOpen, setAddNewsOpen] = useState(false);
     const [form, setForm] = useState({ cim: '', datum: '', tartalom: '' });
     const [formLoading, setFormLoading] = useState(false);
-    const [editingNewsId, setEditingNewsId] = useState(null);
+    // News szerkesztes (null vagy egy news item)
+    const [editNewsItem, setEditNewsItem] = useState(null);
     const [editForm, setEditForm] = useState({ cim: '', datum: '', tartalom: '' });
     const [editLoading, setEditLoading] = useState(false);
+    // About szerkesztes
+    const [aboutEditOpen, setAboutEditOpen] = useState(false);
+    const [aboutEditText, setAboutEditText] = useState('');
+    const [aboutSaving, setAboutSaving] = useState(false);
+    // Gallery kezeles
+    const [galleryAdminOpen, setGalleryAdminOpen] = useState(false);
 
     // Gallery (About kártya)
     const [gallery, setGallery] = useState([]);
     const [activeSlide, setActiveSlide] = useState(0);
     const [lightboxOpen, setLightboxOpen] = useState(false);
     const [lightboxIndex, setLightboxIndex] = useState(0);
-    const [showGalleryAdmin, setShowGalleryAdmin] = useState(false);
     const [uploadLoading, setUploadLoading] = useState(false);
 
     useEffect(() => {
-        const storedUser = localStorage.getItem("user");
-        if (storedUser) {
-            try { setUser(JSON.parse(storedUser)); }
-            catch (e) { console.error(e); }
-        }
+        // BIZTONSAG: az is_admin-t csak a szervertol (/me) fogadjuk el. A localStorage-ban
+        // barmi lehet, azt nem bizzuk meg. Ha nincs ervenyes session, user = null marad.
+        getMe().then(data => {
+            if (data) setUser(data);
+        });
 
         getHomeKartyak().then(data => {
             if (data) {
@@ -93,16 +101,28 @@ export default function Home() {
         return () => window.removeEventListener('keydown', handler);
     }, [lightboxOpen, gallery.length]);
 
-    const startEdit = (mezo) => { setEditing(mezo); setEditText(kartyak[mezo].tartalom); };
+    // --- ABOUT SZOVEG SZERKESZTES (modal-ban) ---
+    const openAboutEdit = () => {
+        setAboutEditText(kartyak.about.tartalom || '');
+        setAboutEditOpen(true);
+    };
 
-    const saveEdit = async (mezo) => {
+    const saveAboutEdit = async () => {
+        setAboutSaving(true);
         try {
-            const res = await updateHomeKartya(kartyak[mezo].id, editText);
+            const res = await updateHomeKartya(kartyak.about.id, aboutEditText);
             if (res.result) {
-                setKartyak(prev => ({ ...prev, [mezo]: { ...prev[mezo], tartalom: editText } }));
-                setEditing(null);
+                setKartyak(prev => ({ ...prev, about: { ...prev.about, tartalom: aboutEditText } }));
+                setAboutEditOpen(false);
             } else alert("Hiba a mentésnél: " + res.message);
         } catch { alert("Szerver hiba!"); }
+        setAboutSaving(false);
+    };
+
+    // --- NEWS HOZZAADAS ---
+    const openAddNews = () => {
+        setForm({ cim: '', datum: '', tartalom: '' });
+        setAddNewsOpen(true);
     };
 
     const handleAddNews = async () => {
@@ -114,27 +134,30 @@ export default function Home() {
                 const fresh = await getNews();
                 if (Array.isArray(fresh)) setNewsList(fresh);
                 setForm({ cim: '', datum: '', tartalom: '' });
-                setShowAddForm(false);
+                setAddNewsOpen(false);
             } else alert("Hiba: " + res.message);
         } catch { alert("Szerver hiba!"); }
         setFormLoading(false);
     };
 
+    // --- NEWS SZERKESZTES ---
     const startEditNews = (item) => {
-        setEditingNewsId(item.id);
+        setEditNewsItem(item);
         setEditForm({ cim: item.cim, datum: item.datum, tartalom: item.tartalom });
     };
 
-    const cancelEditNews = () => { setEditingNewsId(null); setEditForm({ cim: '', datum: '', tartalom: '' }); };
+    const closeEditNews = () => { setEditNewsItem(null); setEditForm({ cim: '', datum: '', tartalom: '' }); };
 
-    const handleUpdateNews = async (id) => {
+    const handleUpdateNews = async () => {
+        if (!editNewsItem) return;
         if (!editForm.cim || !editForm.datum || !editForm.tartalom) return alert("Töltsd ki az összes mezőt!");
         setEditLoading(true);
         try {
+            const id = editNewsItem.id;
             const res = await updateNews(id, editForm.cim, editForm.tartalom, editForm.datum);
             if (res.result) {
                 setNewsList(prev => prev.map(n => n.id === id ? { ...n, ...editForm } : n));
-                cancelEditNews();
+                closeEditNews();
             } else alert("Hiba: " + res.message);
         } catch { alert("Szerver hiba!"); }
         setEditLoading(false);
@@ -203,115 +226,37 @@ export default function Home() {
                                     borderBottom: '1px solid rgba(255,255,255,0.08)',
                                     paddingBottom: '10px', marginBottom: '10px'
                                 }}>
-                                    {editingNewsId === item.id ? (
-                                        <div style={{
-                                            background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.1)',
-                                            borderRadius: '10px', padding: '10px'
-                                        }}>
-                                            <input
-                                                placeholder="Cím"
-                                                value={editForm.cim}
-                                                onChange={e => setEditForm(p => ({ ...p, cim: e.target.value }))}
-                                                style={inputStyle}
-                                            />
-                                            <input
-                                                type="date"
-                                                value={editForm.datum}
-                                                onChange={e => setEditForm(p => ({ ...p, datum: e.target.value }))}
-                                                style={inputStyle}
-                                            />
-                                            <textarea
-                                                placeholder="Tartalom"
-                                                value={editForm.tartalom}
-                                                onChange={e => setEditForm(p => ({ ...p, tartalom: e.target.value }))}
-                                                rows={3}
-                                                style={{ ...inputStyle, resize: 'vertical', marginBottom: '8px' }}
-                                            />
-                                            <div style={{ display: 'flex', gap: '8px', justifyContent: 'flex-end' }}>
-                                                <button onClick={cancelEditNews} style={{
-                                                    background: 'rgba(255,100,100,0.2)', border: '1px solid rgba(255,100,100,0.4)',
-                                                    color: 'white', borderRadius: '8px', padding: '4px 12px', cursor: 'pointer', fontSize: '0.8rem'
-                                                }}>✕ Mégse</button>
-                                                <button onClick={() => handleUpdateNews(item.id)} disabled={editLoading} style={{
-                                                    background: 'rgba(100,200,100,0.2)', border: '1px solid rgba(100,200,100,0.4)',
-                                                    color: 'white', borderRadius: '8px', padding: '4px 12px', cursor: 'pointer', fontSize: '0.8rem'
-                                                }}>{editLoading ? '...' : '✔ Mentés'}</button>
-                                            </div>
+                                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '8px' }}>
+                                        <div style={{ minWidth: 0, flex: 1 }}>
+                                            <div style={{ fontWeight: '700', fontSize: '0.95rem', letterSpacing: '0.5px', wordBreak: 'break-word' }}>{item.cim}</div>
+                                            <div style={{ fontSize: '0.75rem', color: 'rgba(255,255,255,0.45)', marginBottom: '4px' }}>{item.datum}</div>
+                                            <div style={{ fontSize: '0.85rem', color: 'rgba(255,255,255,0.8)', whiteSpace: 'pre-wrap', wordBreak: 'break-word', overflowWrap: 'break-word' }}>{item.tartalom}</div>
                                         </div>
-                                    ) : (
-                                        <div>
-                                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '8px' }}>
-                                                <div style={{ minWidth: 0, flex: 1 }}>
-                                                    <div style={{ fontWeight: '700', fontSize: '0.95rem', letterSpacing: '0.5px', wordBreak: 'break-word' }}>{item.cim}</div>
-                                                    <div style={{ fontSize: '0.75rem', color: 'rgba(255,255,255,0.45)', marginBottom: '4px' }}>{item.datum}</div>
-                                                    <div style={{ fontSize: '0.85rem', color: 'rgba(255,255,255,0.8)', whiteSpace: 'pre-wrap', wordBreak: 'break-word', overflowWrap: 'break-word' }}>{item.tartalom}</div>
-                                                </div>
-                                                {isAdmin && (
-                                                    <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', flexShrink: 0 }}>
-                                                        <button onClick={() => startEditNews(item)} style={{
-                                                            background: 'rgba(136,152,240,0.2)', border: '1px solid rgba(136,152,240,0.4)',
-                                                            color: 'white', borderRadius: '6px', padding: '2px 8px',
-                                                            cursor: 'pointer', fontSize: '0.75rem'
-                                                        }}>✏️</button>
-                                                        <button onClick={() => handleDeleteNews(item.id)} style={{
-                                                            background: 'rgba(255,80,80,0.15)', border: '1px solid rgba(255,80,80,0.3)',
-                                                            color: '#ff6b6b', borderRadius: '6px', padding: '2px 8px',
-                                                            cursor: 'pointer', fontSize: '0.75rem'
-                                                        }}>🗑️</button>
-                                                    </div>
-                                                )}
+                                        {isAdmin && (
+                                            <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', flexShrink: 0 }}>
+                                                <button onClick={() => startEditNews(item)} title="Szerkesztés" style={{
+                                                    background: 'rgba(136,152,240,0.2)', border: '1px solid rgba(136,152,240,0.4)',
+                                                    color: 'white', borderRadius: '6px', padding: '2px 8px',
+                                                    cursor: 'pointer', fontSize: '0.75rem'
+                                                }}>✏️</button>
+                                                <button onClick={() => handleDeleteNews(item.id)} title="Törlés" style={{
+                                                    background: 'rgba(255,80,80,0.15)', border: '1px solid rgba(255,80,80,0.3)',
+                                                    color: '#ff6b6b', borderRadius: '6px', padding: '2px 8px',
+                                                    cursor: 'pointer', fontSize: '0.75rem'
+                                                }}>🗑️</button>
                                             </div>
-                                        </div>
-                                    )}
+                                        )}
+                                    </div>
                                 </div>
                             ))}
                         </div>
 
                         {isAdmin && (
-                            <div style={{ marginTop: '10px' }}>
-                                {showAddForm ? (
-                                    <div style={{
-                                        background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.1)',
-                                        borderRadius: '10px', padding: '12px', marginBottom: '8px'
-                                    }}>
-                                        <input
-                                            placeholder="Cím"
-                                            value={form.cim}
-                                            onChange={e => setForm(p => ({ ...p, cim: e.target.value }))}
-                                            style={inputStyle}
-                                        />
-                                        <input
-                                            type="date"
-                                            value={form.datum}
-                                            onChange={e => setForm(p => ({ ...p, datum: e.target.value }))}
-                                            style={inputStyle}
-                                        />
-                                        <textarea
-                                            placeholder="Tartalom"
-                                            value={form.tartalom}
-                                            onChange={e => setForm(p => ({ ...p, tartalom: e.target.value }))}
-                                            rows={3}
-                                            style={{ ...inputStyle, resize: 'vertical', marginBottom: '8px' }}
-                                        />
-                                        <div style={{ display: 'flex', gap: '8px', justifyContent: 'flex-end' }}>
-                                            <button onClick={() => { setShowAddForm(false); setForm({ cim: '', datum: '', tartalom: '' }); }} style={{
-                                                background: 'rgba(255,100,100,0.2)', border: '1px solid rgba(255,100,100,0.4)',
-                                                color: 'white', borderRadius: '8px', padding: '4px 12px', cursor: 'pointer', fontSize: '0.8rem'
-                                            }}>✕ Mégse</button>
-                                            <button onClick={handleAddNews} disabled={formLoading} style={{
-                                                background: 'rgba(100,200,100,0.2)', border: '1px solid rgba(100,200,100,0.4)',
-                                                color: 'white', borderRadius: '8px', padding: '4px 12px', cursor: 'pointer', fontSize: '0.8rem'
-                                            }}>{formLoading ? '...' : '✔ Mentés'}</button>
-                                        </div>
-                                    </div>
-                                ) : (
-                                    <div style={{ display: 'flex', gap: '8px', justifyContent: 'flex-end' }}>
-                                        <button onClick={() => setShowAddForm(true)} style={{
-                                            background: 'rgba(100,200,100,0.2)', border: '1px solid rgba(100,200,100,0.4)',
-                                            color: 'white', borderRadius: '8px', padding: '4px 12px', cursor: 'pointer', fontSize: '0.8rem'
-                                        }}>＋ Hozzáadás</button>
-                                    </div>
-                                )}
+                            <div style={{ marginTop: '10px', display: 'flex', gap: '8px', justifyContent: 'flex-end' }}>
+                                <button onClick={openAddNews} style={{
+                                    background: 'rgba(100,200,100,0.2)', border: '1px solid rgba(100,200,100,0.4)',
+                                    color: 'white', borderRadius: '8px', padding: '4px 12px', cursor: 'pointer', fontSize: '0.8rem'
+                                }}>＋ Hozzáadás</button>
                             </div>
                         )}
                     </Card>
@@ -359,90 +304,19 @@ export default function Home() {
                             </div>
                         )}
 
-                        {editing === 'about' ? (
-                            <textarea value={editText} onChange={(e) => setEditText(e.target.value)}
-                                style={{
-                                    width: '100%', minHeight: '100px', background: 'rgba(255,255,255,0.05)',
-                                    border: '1px solid rgba(255,255,255,0.2)', borderRadius: '10px',
-                                    color: 'white', padding: '10px', resize: 'vertical', fontSize: '0.9rem'
-                                }}
-                            />
-                        ) : (
-                            kartyak.about.tartalom && <p style={{ whiteSpace: 'pre-wrap', marginBottom: '8px' }}>{kartyak.about.tartalom}</p>
-                        )}
+                        {kartyak.about.tartalom && <p style={{ whiteSpace: 'pre-wrap', marginBottom: '8px' }}>{kartyak.about.tartalom}</p>}
 
                         {isAdmin && (
                             <div style={{ marginTop: '10px', display: 'flex', gap: '8px', justifyContent: 'flex-end', flexWrap: 'wrap' }}>
-                                <button onClick={() => setShowGalleryAdmin(p => !p)} style={{
+                                <button onClick={() => setGalleryAdminOpen(true)} style={{
                                     background: 'rgba(200,160,80,0.2)', border: '1px solid rgba(200,160,80,0.4)',
                                     color: 'white', borderRadius: '8px', padding: '4px 12px',
                                     cursor: 'pointer', fontSize: '0.8rem'
                                 }}>🖼️ Képek</button>
-                                {editing === 'about' ? (
-                                    <>
-                                        <button onClick={() => setEditing(null)} style={{
-                                            background: 'rgba(255,100,100,0.2)', border: '1px solid rgba(255,100,100,0.4)',
-                                            color: 'white', borderRadius: '8px', padding: '4px 12px', cursor: 'pointer', fontSize: '0.8rem'
-                                        }}>✕ Mégse</button>
-                                        <button onClick={() => saveEdit('about')} style={{
-                                            background: 'rgba(100,200,100,0.2)', border: '1px solid rgba(100,200,100,0.4)',
-                                            color: 'white', borderRadius: '8px', padding: '4px 12px', cursor: 'pointer', fontSize: '0.8rem'
-                                        }}>✔ Mentés</button>
-                                    </>
-                                ) : (
-                                    <button onClick={() => startEdit('about')} style={{
-                                        background: 'rgba(136,152,240,0.2)', border: '1px solid rgba(136,152,240,0.4)',
-                                        color: 'white', borderRadius: '8px', padding: '4px 12px', cursor: 'pointer', fontSize: '0.8rem'
-                                    }}>✏️ Szerkesztés</button>
-                                )}
-                            </div>
-                        )}
-
-                        {isAdmin && showGalleryAdmin && (
-                            <div style={{
-                                marginTop: '10px', background: 'rgba(255,255,255,0.04)',
-                                border: '1px solid rgba(255,255,255,0.1)', borderRadius: '10px', padding: '10px'
-                            }}>
-                                {gallery.length === 0 && (
-                                    <p style={{ fontSize: '0.8rem', color: 'rgba(255,255,255,0.4)', marginBottom: '8px' }}>Még nincs kép.</p>
-                                )}
-                                {gallery.map(img => (
-                                    <div key={img.id} style={{
-                                        display: 'flex', gap: '8px', alignItems: 'center', marginBottom: '6px'
-                                    }}>
-                                        <img src={imgSrc(img.url)} alt="" style={{
-                                            width: '56px', height: '36px', objectFit: 'cover',
-                                            borderRadius: '4px', flexShrink: 0,
-                                            background: 'rgba(0,0,0,0.3)'
-                                        }} onError={e => e.target.style.opacity = '0.3'} />
-                                        <span style={{
-                                            flex: 1, fontSize: '0.72rem', color: 'rgba(255,255,255,0.5)',
-                                            overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap'
-                                        }}>{img.url}</span>
-                                        <button onClick={() => handleDeleteGalleryImage(img.id)} style={{
-                                            background: 'rgba(255,80,80,0.15)', border: '1px solid rgba(255,80,80,0.3)',
-                                            color: '#ff6b6b', borderRadius: '6px', padding: '2px 7px',
-                                            cursor: 'pointer', fontSize: '0.75rem', flexShrink: 0
-                                        }}>🗑️</button>
-                                    </div>
-                                ))}
-                                <label style={{
-                                    display: 'flex', alignItems: 'center', justifyContent: 'center',
-                                    gap: '8px', marginTop: '8px', padding: '8px 16px',
-                                    background: uploadLoading ? 'rgba(100,200,100,0.1)' : 'rgba(100,200,100,0.2)',
-                                    border: '1px dashed rgba(100,200,100,0.5)',
-                                    borderRadius: '8px', cursor: uploadLoading ? 'wait' : 'pointer',
-                                    color: 'white', fontSize: '0.85rem', transition: 'background 0.2s'
-                                }}>
-                                    {uploadLoading ? '⏳ Feltöltés...' : '＋ Kép kiválasztása'}
-                                    <input
-                                        type="file"
-                                        accept="image/*"
-                                        style={{ display: 'none' }}
-                                        onChange={handleUploadImage}
-                                        disabled={uploadLoading}
-                                    />
-                                </label>
+                                <button onClick={openAboutEdit} style={{
+                                    background: 'rgba(136,152,240,0.2)', border: '1px solid rgba(136,152,240,0.4)',
+                                    color: 'white', borderRadius: '8px', padding: '4px 12px', cursor: 'pointer', fontSize: '0.8rem'
+                                }}>✏️ Szerkesztés</button>
                             </div>
                         )}
                     </Card>
@@ -521,6 +395,173 @@ export default function Home() {
                 )}
             </div>
         )}
+
+        {/* ======= ADMIN MODALOK ======= */}
+
+        {/* NEWS HOZZAADAS */}
+        <Modal open={addNewsOpen} onClose={() => setAddNewsOpen(false)} title="Új hír hozzáadása">
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                <input
+                    placeholder="Cím"
+                    value={form.cim}
+                    onChange={e => setForm(p => ({ ...p, cim: e.target.value }))}
+                    style={modalInputStyle}
+                />
+                <input
+                    type="date"
+                    value={form.datum}
+                    onChange={e => setForm(p => ({ ...p, datum: e.target.value }))}
+                    style={modalInputStyle}
+                />
+                <textarea
+                    placeholder="Tartalom"
+                    value={form.tartalom}
+                    onChange={e => setForm(p => ({ ...p, tartalom: e.target.value }))}
+                    rows={5}
+                    style={{ ...modalInputStyle, resize: 'vertical' }}
+                />
+                <div style={{ display: 'flex', gap: '10px', justifyContent: 'flex-end', marginTop: '4px' }}>
+                    <button onClick={() => setAddNewsOpen(false)} style={modalCancelBtn}>Mégse</button>
+                    <button onClick={handleAddNews} disabled={formLoading} style={modalSaveBtn}>
+                        {formLoading ? 'Mentés...' : '✔ Közzétesz'}
+                    </button>
+                </div>
+            </div>
+        </Modal>
+
+        {/* NEWS SZERKESZTES */}
+        <Modal open={!!editNewsItem} onClose={closeEditNews} title="Hír szerkesztése">
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                <input
+                    placeholder="Cím"
+                    value={editForm.cim}
+                    onChange={e => setEditForm(p => ({ ...p, cim: e.target.value }))}
+                    style={modalInputStyle}
+                />
+                <input
+                    type="date"
+                    value={editForm.datum}
+                    onChange={e => setEditForm(p => ({ ...p, datum: e.target.value }))}
+                    style={modalInputStyle}
+                />
+                <textarea
+                    placeholder="Tartalom"
+                    value={editForm.tartalom}
+                    onChange={e => setEditForm(p => ({ ...p, tartalom: e.target.value }))}
+                    rows={5}
+                    style={{ ...modalInputStyle, resize: 'vertical' }}
+                />
+                <div style={{ display: 'flex', gap: '10px', justifyContent: 'space-between', marginTop: '4px', flexWrap: 'wrap' }}>
+                    <button
+                        onClick={() => { if (editNewsItem) { handleDeleteNews(editNewsItem.id); closeEditNews(); } }}
+                        style={modalDeleteBtn}
+                    >🗑 Törlés</button>
+                    <div style={{ display: 'flex', gap: '10px' }}>
+                        <button onClick={closeEditNews} style={modalCancelBtn}>Mégse</button>
+                        <button onClick={handleUpdateNews} disabled={editLoading} style={modalSaveBtn}>
+                            {editLoading ? 'Mentés...' : '✔ Mentés'}
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </Modal>
+
+        {/* ABOUT SZOVEG SZERKESZTES */}
+        <Modal open={aboutEditOpen} onClose={() => setAboutEditOpen(false)} title="About szöveg szerkesztése">
+            <textarea
+                value={aboutEditText}
+                onChange={(e) => setAboutEditText(e.target.value)}
+                rows={10}
+                style={{ ...modalInputStyle, resize: 'vertical', width: '100%' }}
+            />
+            <div style={{ display: 'flex', gap: '10px', justifyContent: 'flex-end', marginTop: '12px' }}>
+                <button onClick={() => setAboutEditOpen(false)} style={modalCancelBtn}>Mégse</button>
+                <button onClick={saveAboutEdit} disabled={aboutSaving} style={modalSaveBtn}>
+                    {aboutSaving ? 'Mentés...' : '✔ Mentés'}
+                </button>
+            </div>
+        </Modal>
+
+        {/* GALLERY KEZELES */}
+        <Modal open={galleryAdminOpen} onClose={() => setGalleryAdminOpen(false)} title="Képek kezelése" maxWidth="700px">
+            {gallery.length === 0 && (
+                <p style={{ fontSize: '0.9rem', color: 'rgba(255,255,255,0.5)', marginBottom: '12px' }}>Még nincs kép feltöltve.</p>
+            )}
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', maxHeight: '50vh', overflowY: 'auto' }}>
+                {gallery.map(img => (
+                    <div key={img.id} style={{
+                        display: 'flex', gap: '12px', alignItems: 'center',
+                        background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)',
+                        borderRadius: '10px', padding: '8px'
+                    }}>
+                        <img src={imgSrc(img.url)} alt="" style={{
+                            width: '80px', height: '50px', objectFit: 'cover',
+                            borderRadius: '6px', flexShrink: 0,
+                            background: 'rgba(0,0,0,0.3)'
+                        }} onError={e => e.target.style.opacity = '0.3'} />
+                        <span style={{
+                            flex: 1, fontSize: '0.8rem', color: 'rgba(255,255,255,0.6)',
+                            overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap'
+                        }}>{img.url}</span>
+                        <button onClick={() => handleDeleteGalleryImage(img.id)} style={{
+                            background: 'rgba(255,80,80,0.15)', border: '1px solid rgba(255,80,80,0.3)',
+                            color: '#ff6b6b', borderRadius: '8px', padding: '6px 12px',
+                            cursor: 'pointer', fontSize: '0.8rem', flexShrink: 0
+                        }}>🗑 Törlés</button>
+                    </div>
+                ))}
+            </div>
+            <label style={{
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                gap: '10px', marginTop: '16px', padding: '14px 20px',
+                background: uploadLoading ? 'rgba(100,200,100,0.1)' : 'rgba(100,200,100,0.2)',
+                border: '1px dashed rgba(100,200,100,0.5)',
+                borderRadius: '10px', cursor: uploadLoading ? 'wait' : 'pointer',
+                color: 'white', fontSize: '0.9rem', transition: 'background 0.2s'
+            }}>
+                {uploadLoading ? '⏳ Feltöltés...' : '＋ Új kép feltöltése'}
+                <input
+                    type="file"
+                    accept="image/*"
+                    style={{ display: 'none' }}
+                    onChange={handleUploadImage}
+                    disabled={uploadLoading}
+                />
+            </label>
+        </Modal>
         </>
     );
 }
+
+// --- Modal belso stilusok ---
+const modalInputStyle = {
+    width: '100%',
+    background: 'rgba(255,255,255,0.08)',
+    border: '1px solid rgba(255,255,255,0.2)',
+    borderRadius: '10px',
+    color: 'white',
+    padding: '10px 14px',
+    fontSize: '0.9rem',
+    outline: 'none',
+    colorScheme: 'dark',
+    fontFamily: 'inherit'
+};
+const modalCancelBtn = {
+    background: 'rgba(255,100,100,0.15)',
+    border: '1px solid rgba(255,100,100,0.3)',
+    color: 'white', borderRadius: '10px',
+    padding: '8px 20px', cursor: 'pointer', fontSize: '0.9rem'
+};
+const modalSaveBtn = {
+    background: 'rgba(100,200,100,0.15)',
+    border: '1px solid rgba(100,200,100,0.3)',
+    color: 'white', borderRadius: '10px',
+    padding: '8px 20px', cursor: 'pointer',
+    fontSize: '0.9rem', fontWeight: '600'
+};
+const modalDeleteBtn = {
+    background: 'rgba(255,80,80,0.15)',
+    border: '1px solid rgba(255,80,80,0.3)',
+    color: '#ff6b6b', borderRadius: '10px',
+    padding: '8px 16px', cursor: 'pointer', fontSize: '0.85rem'
+};

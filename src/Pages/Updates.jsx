@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import Card from "../components/Card";
 import PageWrapper from "../components/PageWrapper";
-import { getUpdates, addUpdate, deleteUpdate } from "../../api";
+import { getUpdates, addUpdate, deleteUpdate, getMe } from "../../api";
 
 export default function Updates() {
     const [user, setUser] = useState(null);
@@ -15,11 +15,8 @@ export default function Updates() {
     const [selectedUpdate, setSelectedUpdate] = useState(null);
 
     useEffect(() => {
-        const storedUser = localStorage.getItem("user");
-        if (storedUser) {
-            try { setUser(JSON.parse(storedUser)); }
-            catch (e) { console.error(e); }
-        }
+        // BIZTONSAG: is_admin-t csak a /me-bol fogadjuk el
+        getMe().then(data => { if (data) setUser(data); });
 
         getUpdates().then(data => {
             if (Array.isArray(data)) setUpdates(data);
