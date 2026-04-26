@@ -85,8 +85,6 @@ A frontend **React 19** + **Vite** alapokon készült, **Bootstrap 5** stílusoz
   </tr>
 </table>
 
-> 💡 A képek a `screenshots/` mappában találhatók. Ha cserélni akarod őket, csak ugyanezekkel a nevekkel mentsd felül.
-
 ## 🛠️ Használt technológiák
 
 | Kategória | Eszközök |
