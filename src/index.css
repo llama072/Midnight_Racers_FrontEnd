@@ -203,7 +203,8 @@ body.menu-open .theme-toggle {
 /* LOGIN CARD – mobilon ne takarjon a navbar */
 /* ===================== */
 @media (max-width: 991px) {
-  .login-card-wrapper {
+  .login-card-wrapper,
+  .register-card-wrapper {
     align-items: flex-start !important;
     padding-top: 90px !important;
   }

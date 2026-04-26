@@ -4,6 +4,7 @@ import Card from "../components/Card";
 import TextBox from "../components/Textbox";
 import Button from "../components/Button";
 import PageWrapper from "../components/PageWrapper";
+import { toast } from "../components/Toast";
 import { bejelentkezes } from "../../api";
 
 export default function Login() {
@@ -13,24 +14,24 @@ export default function Login() {
 
     const handleLogin = async () => {
         if (!felhasznalonev || !jelszo) {
-            alert("Hiányos adat(ok)!");
+            toast.warning("Hiányos adat(ok)!");
             return;
         }
         try {
             const res = await bejelentkezes(felhasznalonev, jelszo);
             if (res.result) {
-                alert(res.message || "Sikeres belépés!");
+                toast.success(res.message || "Sikeres belépés!");
                 // Csak a nevet cache-eljuk UI-hoz. Az is_admin-t a backend /me endpointjarol kerjuk le,
                 // igy a localStorage manipulacio nem tud adminna tenni senkit.
                 localStorage.setItem("user", JSON.stringify({ name: res.user?.name }));
                 navigate("/");
                 window.location.reload();
             } else {
-                alert(res.message);
+                toast.error(res.message);
             }
         } catch (error) {
             console.error("Hiba a belépés során:", error);
-            alert("A szerver jelenleg nem elérhető.");
+            toast.error("A szerver jelenleg nem elérhető.");
         }
     };
 

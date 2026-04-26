@@ -4,6 +4,7 @@ import Card from "../components/Card";
 import TextBox from "../components/Textbox";
 import Button from "../components/Button";
 import PageWrapper from "../components/PageWrapper";
+import { toast } from "../components/Toast";
 import { regisztracio } from "../../api";
 
 export default function Register() {
@@ -17,38 +18,38 @@ export default function Register() {
 
     const handleRegister = async () => {
         if (!User_Name || !First_Name || !Last_Name || !Email || !Password || !ConfirmPassword) {
-            alert("Hiányos Adat(ok) ₍^. .^₎⟆");
+            toast.warning("Hiányos Adat(ok) ₍^. .^₎⟆");
             return;
         }
         if (Password.length < 6) {
-            alert("A jelszónak legalább 6 karakternek kell lennie!");
+            toast.warning("A jelszónak legalább 6 karakternek kell lennie!");
             return;
         }
         if (Password !== ConfirmPassword) {
-            alert("A jelszavak nem egyeznek!");
+            toast.warning("A jelszavak nem egyeznek!");
             return;
         }
         try {
             const res = await regisztracio(User_Name, First_Name, Last_Name, Email, Password);
             if (res.result) {
-                alert(res.message || "Sikeres regisztráció!");
+                toast.success(res.message || "Sikeres regisztráció!");
                 navigate('/Login');
             } else {
-                alert(res.message || "Hiba történt a regisztráció során.");
+                toast.error(res.message || "Hiba történt a regisztráció során.");
             }
         } catch (error) {
             console.error("Hálózati hiba:", error);
-            alert("Szerver hiba történt, próbáld újra később!");
+            toast.error("Szerver hiba történt, próbáld újra később!");
         }
     };
 
     return (
-        <PageWrapper scrollStyle={{ alignItems: 'center' }}>
-            <div style={{
+        <PageWrapper scrollClassName="no-scrollbar" scrollStyle={{ alignItems: 'center' }}>
+            <div className="register-card-wrapper" style={{
                 display: "flex", justifyContent: "center",
-                alignItems: "flex-start",
-                paddingTop: "110px", paddingBottom: "40px",
-                width: "100%"
+                alignItems: "center",
+                flexGrow: 1, width: "100%",
+                paddingTop: "110px", paddingBottom: "40px"
             }}>
                 <Card width="800px" height="auto" title="CREATE AN ACCOUNT">
                     <div className="px-3 px-md-5 py-4">

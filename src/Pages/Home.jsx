@@ -3,6 +3,7 @@ import Navbar from "../components/Navbar";
 import Card from "../components/Card";
 import PageWrapper from "../components/PageWrapper";
 import Modal from "../components/Modal";
+import { toast } from "../components/Toast";
 import { getHomeKartyak, updateHomeKartya, getNews, addNews, updateNews, deleteNews, getAboutGallery, uploadAboutGalleryImage, deleteAboutGalleryImage, getMe, BASE } from "../../api";
 
 const imgSrc = (url) => url?.startsWith('/uploads/') ? `${BASE}${url}` : url;
@@ -114,8 +115,9 @@ export default function Home() {
             if (res.result) {
                 setKartyak(prev => ({ ...prev, about: { ...prev.about, tartalom: aboutEditText } }));
                 setAboutEditOpen(false);
-            } else alert("Hiba a mentésnél: " + res.message);
-        } catch { alert("Szerver hiba!"); }
+                toast.success("About szöveg mentve!");
+            } else toast.error("Hiba a mentésnél: " + res.message);
+        } catch { toast.error("Szerver hiba!"); }
         setAboutSaving(false);
     };
 
@@ -126,7 +128,7 @@ export default function Home() {
     };
 
     const handleAddNews = async () => {
-        if (!form.cim || !form.datum || !form.tartalom) return alert("Töltsd ki az összes mezőt!");
+        if (!form.cim || !form.datum || !form.tartalom) return toast.warning("Töltsd ki az összes mezőt!");
         setFormLoading(true);
         try {
             const res = await addNews(form.cim, form.tartalom, form.datum);
@@ -135,8 +137,9 @@ export default function Home() {
                 if (Array.isArray(fresh)) setNewsList(fresh);
                 setForm({ cim: '', datum: '', tartalom: '' });
                 setAddNewsOpen(false);
-            } else alert("Hiba: " + res.message);
-        } catch { alert("Szerver hiba!"); }
+                toast.success("Hír közzétéve!");
+            } else toast.error("Hiba: " + res.message);
+        } catch { toast.error("Szerver hiba!"); }
         setFormLoading(false);
     };
 
@@ -150,7 +153,7 @@ export default function Home() {
 
     const handleUpdateNews = async () => {
         if (!editNewsItem) return;
-        if (!editForm.cim || !editForm.datum || !editForm.tartalom) return alert("Töltsd ki az összes mezőt!");
+        if (!editForm.cim || !editForm.datum || !editForm.tartalom) return toast.warning("Töltsd ki az összes mezőt!");
         setEditLoading(true);
         try {
             const id = editNewsItem.id;
@@ -158,8 +161,9 @@ export default function Home() {
             if (res.result) {
                 setNewsList(prev => prev.map(n => n.id === id ? { ...n, ...editForm } : n));
                 closeEditNews();
-            } else alert("Hiba: " + res.message);
-        } catch { alert("Szerver hiba!"); }
+                toast.success("Hír mentve!");
+            } else toast.error("Hiba: " + res.message);
+        } catch { toast.error("Szerver hiba!"); }
         setEditLoading(false);
     };
 
@@ -172,8 +176,9 @@ export default function Home() {
             if (res.result) {
                 const fresh = await getAboutGallery();
                 if (Array.isArray(fresh)) setGallery(fresh);
-            } else alert("Hiba: " + res.message);
-        } catch { alert("Szerver hiba!"); }
+                toast.success("Kép feltöltve!");
+            } else toast.error("Hiba: " + res.message);
+        } catch { toast.error("Szerver hiba!"); }
         e.target.value = '';
         setUploadLoading(false);
     };
@@ -188,17 +193,20 @@ export default function Home() {
                     setActiveSlide(0);
                     return next;
                 });
-            } else alert("Hiba: " + res.message);
-        } catch { alert("Szerver hiba!"); }
+                toast.success("Kép törölve.");
+            } else toast.error("Hiba: " + res.message);
+        } catch { toast.error("Szerver hiba!"); }
     };
 
     const handleDeleteNews = async (id) => {
         if (!window.confirm("Biztosan törlöd ezt a hírt?")) return;
         try {
             const res = await deleteNews(id);
-            if (res.result) setNewsList(prev => prev.filter(n => n.id !== id));
-            else alert("Hiba: " + res.message);
-        } catch { alert("Szerver hiba!"); }
+            if (res.result) {
+                setNewsList(prev => prev.filter(n => n.id !== id));
+                toast.success("Hír törölve.");
+            } else toast.error("Hiba: " + res.message);
+        } catch { toast.error("Szerver hiba!"); }
     };
 
     return (
@@ -369,28 +377,32 @@ export default function Home() {
                             onClick={e => { e.stopPropagation(); setLightboxIndex(p => (p - 1 + gallery.length) % gallery.length); }}
                             style={{
                                 position: 'absolute', left: '20px',
+                                top: '50%', transform: 'translateY(-50%)',
                                 background: 'rgba(255,255,255,0.1)', border: '1px solid rgba(255,255,255,0.2)',
-                                color: 'white', fontSize: '2rem', cursor: 'pointer',
+                                color: 'white', fontSize: '2rem', lineHeight: 1, cursor: 'pointer',
                                 borderRadius: '50%', width: '52px', height: '52px',
+                                padding: 0,
                                 display: 'flex', alignItems: 'center', justifyContent: 'center',
                                 transition: 'background 0.2s'
                             }}
                             onMouseEnter={e => e.currentTarget.style.background = 'rgba(255,255,255,0.2)'}
                             onMouseLeave={e => e.currentTarget.style.background = 'rgba(255,255,255,0.1)'}
-                        >‹</button>
+                        ><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{display:"block"}}><polyline points="15 18 9 12 15 6"/></svg></button>
                         <button
                             onClick={e => { e.stopPropagation(); setLightboxIndex(p => (p + 1) % gallery.length); }}
                             style={{
                                 position: 'absolute', right: '20px',
+                                top: '50%', transform: 'translateY(-50%)',
                                 background: 'rgba(255,255,255,0.1)', border: '1px solid rgba(255,255,255,0.2)',
-                                color: 'white', fontSize: '2rem', cursor: 'pointer',
+                                color: 'white', fontSize: '2rem', lineHeight: 1, cursor: 'pointer',
                                 borderRadius: '50%', width: '52px', height: '52px',
+                                padding: 0,
                                 display: 'flex', alignItems: 'center', justifyContent: 'center',
                                 transition: 'background 0.2s'
                             }}
                             onMouseEnter={e => e.currentTarget.style.background = 'rgba(255,255,255,0.2)'}
                             onMouseLeave={e => e.currentTarget.style.background = 'rgba(255,255,255,0.1)'}
-                        >›</button>
+                        ><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{display:"block"}}><polyline points="9 18 15 12 9 6"/></svg></button>
                     </>
                 )}
             </div>

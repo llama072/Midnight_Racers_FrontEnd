@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import Card from "../components/Card";
 import PageWrapper from "../components/PageWrapper";
+import { toast } from "../components/Toast";
 import { getUpdates, addUpdate, deleteUpdate, getMe } from "../../api";
 
 export default function Updates() {
@@ -33,7 +34,7 @@ export default function Updates() {
 
     const handleAdd = async () => {
         if (!newDatum || !newSzoveg) {
-            alert("Töltsd ki a dátumot és a szöveget!");
+            toast.warning("Töltsd ki a dátumot és a szöveget!");
             return;
         }
         setLoading(true);
@@ -45,11 +46,12 @@ export default function Updates() {
                 setNewDatum('');
                 setNewSzoveg('');
                 setShowForm(false);
+                toast.success("Update közzétéve!");
             } else {
-                alert("Hiba: " + res.message);
+                toast.error("Hiba: " + res.message);
             }
         } catch {
-            alert("Szerver hiba!");
+            toast.error("Szerver hiba!");
         }
         setLoading(false);
     };
@@ -61,11 +63,12 @@ export default function Updates() {
             if (res.result) {
                 setUpdates(prev => prev.filter(u => u.id !== id));
                 if (selectedUpdate?.id === id) setSelectedUpdate(null);
+                toast.success("Update törölve.");
             } else {
-                alert("Hiba: " + res.message);
+                toast.error("Hiba: " + res.message);
             }
         } catch {
-            alert("Szerver hiba!");
+            toast.error("Szerver hiba!");
         }
     };
 
@@ -74,11 +77,14 @@ export default function Updates() {
     return (
         <>
         <PageWrapper scrollClassName="no-scrollbar" scrollStyle={{ overflowX: 'hidden' }}>
-            <div className="container-fluid" style={{
+            <div className="updates-grid container-fluid" style={{
                 paddingTop: '120px', paddingBottom: '50px',
-                paddingLeft: '150px', paddingRight: '150px',
+                paddingLeft: 'clamp(20px, 6vw, 80px)',
+                paddingRight: 'clamp(20px, 6vw, 80px)',
                 display: 'flex', flexWrap: 'wrap',
-                justifyContent: 'center', gap: '40px', minHeight: '100%'
+                justifyContent: 'center',
+                rowGap: '22px', columnGap: '22px',
+                minHeight: '100%'
             }}>
 
                 {isAdmin && (

@@ -13,6 +13,7 @@ import FAQ from './Pages/FAQ'
 import Stats from './Pages/Stats'
 import { BrowserRouter, Routes, Route } from 'react-router-dom'
 import { ThemeProvider } from './context/ThemeContext'
+import ToastContainer from './components/Toast'
 
 createRoot(document.getElementById('root')).render(
   <StrictMode>
@@ -30,6 +31,7 @@ createRoot(document.getElementById('root')).render(
           <Route path='/Stats' element={<Stats />} />
         </Routes>
       </BrowserRouter>
+      <ToastContainer />
     </ThemeProvider>
   </StrictMode>,
 )

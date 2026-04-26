@@ -5,6 +5,7 @@ import TextBox from "../components/Textbox";
 import Button from "../components/Button";
 import PageWrapper from "../components/PageWrapper";
 import Modal from "../components/Modal";
+import { toast } from "../components/Toast";
 import { getProfilAdatok, updateProfilAdat, updatePassword, deleteProfile, clearToken } from "../../api";
 
 const FIELD_LABELS = {
@@ -23,7 +24,20 @@ export default function Profile() {
     const [original, setOriginal] = useState({ First_Name: "", Last_Name: "", User_Name: "", Email: "" });
     const [savingField, setSavingField] = useState(null);
     const [isChangingPassword, setIsChangingPassword] = useState(false);
+    const [viewAnim, setViewAnim] = useState('in'); // 'in' | 'out' — sima atmenet account <-> password kozott
     const [passwords, setPasswords] = useState({ current: "", new: "", confirm: "" });
+
+    // Sima atmenet a ket nezet kozott (kifade -> tartalom csere -> befade)
+    const switchView = (toPassword) => {
+        setViewAnim('out');
+        setTimeout(() => {
+            setIsChangingPassword(toPassword);
+            if (!toPassword) {
+                setPasswords({ current: "", new: "", confirm: "" });
+            }
+            setViewAnim('in');
+        }, 200);
+    };
     // Delete profil modal
     const [deleteOpen, setDeleteOpen] = useState(false);
     const [deletePwd, setDeletePwd] = useState("");
@@ -59,15 +73,15 @@ export default function Profile() {
 
         // Ures mezo vedelem
         if (trimmed === "") {
-            return alert(`A(z) ${label} mező nem lehet üres!`);
+            return toast.warning(`A(z) ${label} mező nem lehet üres!`);
         }
         // Nem valtozott -> nincs mit menteni
         if (trimmed === (original[field] ?? "").trim()) {
-            return alert("Nincs változás — nincs mit menteni.");
+            return toast.info("Nincs változás — nincs mit menteni.");
         }
         // Extra: email alap formatum ellenorzes
         if (field === "Email" && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(trimmed)) {
-            return alert("Érvénytelen e-mail cím!");
+            return toast.warning("Érvénytelen e-mail cím!");
         }
 
         setSavingField(field);
@@ -75,18 +89,18 @@ export default function Profile() {
             const res = await updateProfilAdat(field, trimmed);
             if (res.result) {
                 setOriginal(prev => ({ ...prev, [field]: trimmed }));
-                alert(`${label} mentve! 💾`);
+                toast.success(`${label} mentve! 💾`);
             } else {
-                alert("Hiba: " + res.message);
+                toast.error("Hiba: " + res.message);
             }
         } catch {
-            alert("Szerverhiba a mentésnél!");
+            toast.error("Szerverhiba a mentésnél!");
         }
         setSavingField(null);
     };
 
     const handleDeleteProfile = async () => {
-        if (!deletePwd) return alert("Add meg a jelenlegi jelszavadat a törléshez!");
+        if (!deletePwd) return toast.warning("Add meg a jelenlegi jelszavadat a törléshez!");
         setDeleteLoading(true);
         try {
             const res = await deleteProfile(deletePwd);
@@ -94,40 +108,39 @@ export default function Profile() {
                 // Takaritas: tokent, localStorage usert, majd atiranyit
                 clearToken();
                 localStorage.removeItem("user");
-                alert("A fiókod sikeresen törölve lett.");
+                toast.success("A fiókod sikeresen törölve lett.");
                 navigate("/");
                 // teljes reload hogy a Navbar is frissuljon
                 window.location.reload();
             } else {
-                alert("Hiba: " + (res.message || "Ismeretlen hiba"));
+                toast.error("Hiba: " + (res.message || "Ismeretlen hiba"));
             }
         } catch {
-            alert("Szerverhiba törlés közben!");
+            toast.error("Szerverhiba törlés közben!");
         }
         setDeleteLoading(false);
     };
 
     const handlePasswordSave = async () => {
         if (!passwords.current || !passwords.new || !passwords.confirm) {
-            return alert("Kérlek töltsd ki az összes mezőt!");
+            return toast.warning("Kérlek töltsd ki az összes mezőt!");
         }
         if (passwords.new !== passwords.confirm) {
-            return alert("Az új jelszavak nem egyeznek!");
+            return toast.warning("Az új jelszavak nem egyeznek!");
         }
         if (passwords.new.length < 6) {
-            return alert("Az új jelszónak legalább 6 karakternek kell lennie!");
+            return toast.warning("Az új jelszónak legalább 6 karakternek kell lennie!");
         }
         try {
             const res = await updatePassword(passwords.current, passwords.new);
             if (res.result) {
-                alert("Jelszó sikeresen módosítva! ✔️");
-                setIsChangingPassword(false);
-                setPasswords({ current: "", new: "", confirm: "" });
+                toast.success("Jelszó sikeresen módosítva! ✔️");
+                switchView(false);
             } else {
-                alert("Hiba: " + res.message);
+                toast.error("Hiba: " + res.message);
             }
         } catch {
-            alert("Hiba történt a mentés során!");
+            toast.error("Hiba történt a mentés során!");
         }
     };
 
