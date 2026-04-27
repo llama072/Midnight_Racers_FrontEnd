@@ -1,15 +1,30 @@
 import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import PageWrapper from "../components/PageWrapper";
-import { getMyStats, getLeaderboard } from "../../api";
+import { toast } from "../components/Toast";
+import { getMyStats, getLeaderboard, getMe } from "../../api";
 
 export default function Stats() {
     const [myStats, setMyStats] = useState({ Score: 0 });
     const [leaderboard, setLeaderboard] = useState([]);
+    const navigate = useNavigate();
 
     useEffect(() => {
-        getMyStats().then(data => { if (data) setMyStats(data); }).catch(() => {});
-        getLeaderboard().then(data => { if (Array.isArray(data)) setLeaderboard(data); }).catch(() => {});
-    }, []);
+        // Auth gate: ha nincs ervenyes session, vissza Login-ra
+        let cancelled = false;
+        (async () => {
+            const me = await getMe();
+            if (cancelled) return;
+            if (!me) {
+                toast.warning("Be kell jelentkezned!");
+                navigate("/Login");
+                return;
+            }
+            getMyStats().then(data => { if (!cancelled && data && typeof data.Score !== 'undefined') setMyStats(data); }).catch(() => {});
+            getLeaderboard().then(data => { if (!cancelled && Array.isArray(data)) setLeaderboard(data); }).catch(() => {});
+        })();
+        return () => { cancelled = true; };
+    }, [navigate]);
 
     const glassStyle = {
         background: 'rgba(255,255,255,0.05)',
@@ -97,12 +112,6 @@ export default function Stats() {
                                     </span>
                                 </div>
                                 <div style={{ display: 'flex', alignItems: 'center', gap: '14px', flexShrink: 0 }}>
-                                    <span style={{
-                                        color: 'rgba(255,255,255,0.5)', fontSize: '0.8rem',
-                                        letterSpacing: '1px', whiteSpace: 'nowrap'
-                                    }}>
-                                        LVL {player.Lvl ?? 0}
-                                    </span>
                                     <span style={{
                                         color: index === 0 ? '#f0c040' : 'white',
                                         fontWeight: '800', fontSize: '1rem', whiteSpace: 'nowrap'

@@ -14,8 +14,26 @@ export default function Navbar({ onMenuToggle }) {
     const [profileExpanded, setProfileExpanded] = useState(false);
     const [isHidden, setIsHidden] = useState(false);
     const lastScrollRef = React.useRef(0);
+    const userMenuRef = React.useRef(null);
     const navigate = useNavigate();
     const { isDarkMode, toggleTheme } = useTheme();
+
+    // User dropdown: click-outside vagy Escape -> bezar
+    useEffect(() => {
+        if (!showMenu) return;
+        const handleClick = (e) => {
+            if (userMenuRef.current && !userMenuRef.current.contains(e.target)) {
+                setShowMenu(false);
+            }
+        };
+        const handleKey = (e) => { if (e.key === 'Escape') setShowMenu(false); };
+        document.addEventListener('mousedown', handleClick);
+        document.addEventListener('keydown', handleKey);
+        return () => {
+            document.removeEventListener('mousedown', handleClick);
+            document.removeEventListener('keydown', handleKey);
+        };
+    }, [showMenu]);
 
     // Hide navbar on scroll down, show on scroll up
     useEffect(() => {
@@ -198,7 +216,7 @@ export default function Navbar({ onMenuToggle }) {
                 {/* JOBB OLDAL: USER / LOGIN */}
                 <div className="col-4 d-flex justify-content-end align-items-center">
                     {user ? (
-                        <div className="d-none d-lg-block position-relative">
+                        <div className="d-none d-lg-block position-relative" ref={userMenuRef}>
                             <div
                                 onClick={() => setShowMenu(prev => !prev)}
                                 style={{

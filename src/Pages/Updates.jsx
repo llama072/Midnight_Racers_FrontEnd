@@ -84,7 +84,11 @@ export default function Updates() {
                 display: 'flex', flexWrap: 'wrap',
                 justifyContent: 'center',
                 rowGap: '22px', columnGap: '22px',
-                minHeight: '100%'
+                minHeight: '100%',
+                // Max 4 kartya / sor: 4 * 300px + 3 * 22px gap + bal/jobb padding
+                maxWidth: 'calc(1266px + 2 * clamp(20px, 6vw, 80px))',
+                marginLeft: 'auto', marginRight: 'auto',
+                boxSizing: 'border-box'
             }}>
 
                 {isAdmin && (

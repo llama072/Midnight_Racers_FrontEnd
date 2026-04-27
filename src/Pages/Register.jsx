@@ -55,30 +55,30 @@ export default function Register() {
                     <div className="px-3 px-md-5 py-4">
                         <div className="row g-3 mb-3">
                             <div className="col-md-6">
-                                <TextBox placeholder="First Name" type="text" value={First_Name} setValue={setF_name} />
+                                <TextBox placeholder="First Name" type="text" value={First_Name} setValue={setF_name} onEnter={handleRegister} />
                             </div>
                             <div className="col-md-6">
-                                <TextBox placeholder="Last Name" type="text" value={Last_Name} setValue={setL_name} />
+                                <TextBox placeholder="Last Name" type="text" value={Last_Name} setValue={setL_name} onEnter={handleRegister} />
                             </div>
                         </div>
                         <div className="row g-3 mb-3">
                             <div className="col-12">
-                                <TextBox placeholder="Username" type="text" value={User_Name} setValue={setUsername} />
+                                <TextBox placeholder="Username" type="text" value={User_Name} setValue={setUsername} onEnter={handleRegister} />
                             </div>
                         </div>
                         <div className="row g-3 mb-3">
                             <div className="col-12">
-                                <TextBox placeholder="E-mail" type="email" value={Email} setValue={setEmail} />
+                                <TextBox placeholder="E-mail" type="email" value={Email} setValue={setEmail} onEnter={handleRegister} />
                             </div>
                         </div>
                         <div className="row g-3 mb-3">
                             <div className="col-12">
-                                <TextBox placeholder="Password (min. 6 karakter)" type="password" value={Password} setValue={setPassword} />
+                                <TextBox placeholder="Password (min. 6 karakter)" type="password" value={Password} setValue={setPassword} onEnter={handleRegister} />
                             </div>
                         </div>
                         <div className="row g-3">
                             <div className="col-12">
-                                <TextBox placeholder="Confirm Password" type="password" value={ConfirmPassword} setValue={setConfirmPassword} />
+                                <TextBox placeholder="Confirm Password" type="password" value={ConfirmPassword} setValue={setConfirmPassword} onEnter={handleRegister} />
                             </div>
                         </div>
                         <div className="mt-4 text-center">

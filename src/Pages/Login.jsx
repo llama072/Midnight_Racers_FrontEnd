@@ -52,6 +52,7 @@ export default function Login() {
                                 placeholder="Username"
                                 value={felhasznalonev}
                                 setValue={setFelhasznalonev}
+                                onEnter={handleLogin}
                             />
                         </div>
                         <div className="mb-3">
@@ -61,6 +62,7 @@ export default function Login() {
                                 placeholder="Password"
                                 value={jelszo}
                                 setValue={setJelszo}
+                                onEnter={handleLogin}
                             />
                         </div>
                         <div className="mt-4 text-center">

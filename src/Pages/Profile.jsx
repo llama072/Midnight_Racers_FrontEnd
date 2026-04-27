@@ -6,7 +6,7 @@ import Button from "../components/Button";
 import PageWrapper from "../components/PageWrapper";
 import Modal from "../components/Modal";
 import { toast } from "../components/Toast";
-import { getProfilAdatok, updateProfilAdat, updatePassword, deleteProfile, clearToken } from "../../api";
+import { getProfilAdatok, updateProfilAdat, updatePassword, deleteProfile, clearToken, getMe } from "../../api";
 
 const FIELD_LABELS = {
     First_Name: "Keresztnév",
@@ -46,6 +46,13 @@ export default function Profile() {
 
     useEffect(() => {
         const fetchProfile = async () => {
+            // Auth gate: ha nincs ervenyes session, vissza Login-ra
+            const me = await getMe();
+            if (!me) {
+                toast.warning("Be kell jelentkezned!");
+                navigate("/Login");
+                return;
+            }
             try {
                 const data = await getProfilAdatok();
                 if (data && data.User_Name) {
@@ -65,7 +72,7 @@ export default function Profile() {
             }
         };
         fetchProfile();
-    }, []);
+    }, [navigate]);
 
     const handleUpdate = async (field, value) => {
         const label = FIELD_LABELS[field] || field;
@@ -153,7 +160,12 @@ export default function Profile() {
             }}>
                 <Card width="800px" height="auto" title={isChangingPassword ? "CHANGE PASSWORD" : "ACCOUNT"}>
                     {!isChangingPassword ? (
-                        <div className="px-5 py-4">
+                        <div className="px-5 py-4 profile-account-view" style={{
+                            transition: 'opacity 220ms ease, transform 220ms ease',
+                            opacity: viewAnim === 'in' ? 1 : 0,
+                            transform: viewAnim === 'in' ? 'translateY(0)' : 'translateY(8px)',
+                            willChange: 'opacity, transform'
+                        }}>
                             <style>{`
                                 .save-btn {
                                     position: absolute; right: 18px; top: 50%;
@@ -185,7 +197,8 @@ export default function Profile() {
                                     animation: spin 0.7s linear infinite;
                                 }
                                 @keyframes spin { to { transform: rotate(360deg); } }
-                                input { padding-right: 60px !important; }
+                                /* Csak az ACCOUNT nezet input-jaira: hely a save gombnak */
+                                .profile-account-view input { padding-right: 60px !important; }
                             `}</style>
                             {(() => {
                                 const renderSaveBtn = (field, value) => {
@@ -208,23 +221,23 @@ export default function Profile() {
                                     <>
                                         <div className="row g-3 mb-3">
                                             <div className="col-md-6 position-relative">
-                                                <TextBox placeholder="First Name" type="text" value={First_Name} setValue={setF_name} />
+                                                <TextBox placeholder="First Name" type="text" value={First_Name} setValue={setF_name} onEnter={() => handleUpdate('First_Name', First_Name)} />
                                                 {renderSaveBtn('First_Name', First_Name)}
                                             </div>
                                             <div className="col-md-6 position-relative">
-                                                <TextBox placeholder="Last Name" type="text" value={Last_Name} setValue={setL_name} />
+                                                <TextBox placeholder="Last Name" type="text" value={Last_Name} setValue={setL_name} onEnter={() => handleUpdate('Last_Name', Last_Name)} />
                                                 {renderSaveBtn('Last_Name', Last_Name)}
                                             </div>
                                         </div>
                                         <div className="row g-3 mb-3">
                                             <div className="col-12 position-relative">
-                                                <TextBox placeholder="Username" type="text" value={User_Name} setValue={setUsername} />
+                                                <TextBox placeholder="Username" type="text" value={User_Name} setValue={setUsername} onEnter={() => handleUpdate('User_Name', User_Name)} />
                                                 {renderSaveBtn('User_Name', User_Name)}
                                             </div>
                                         </div>
                                         <div className="row g-3 mb-3">
                                             <div className="col-12 position-relative">
-                                                <TextBox placeholder="E-mail" type="email" value={Email} setValue={setEmail} />
+                                                <TextBox placeholder="E-mail" type="email" value={Email} setValue={setEmail} onEnter={() => handleUpdate('Email', Email)} />
                                                 {renderSaveBtn('Email', Email)}
                                             </div>
                                         </div>
@@ -236,7 +249,7 @@ export default function Profile() {
                                     <Button
                                         content="CHANGE YOUR PASSWORD"
                                         color="primary"
-                                        onClick={() => setIsChangingPassword(true)}
+                                        onClick={() => switchView(true)}
                                     />
                                 </div>
                                 <div style={{ width: "100%", maxWidth: "420px" }}>
@@ -249,22 +262,24 @@ export default function Profile() {
                             </div>
                         </div>
                     ) : (
-                        <div className="px-5 py-4">
+                        <div className="px-5 py-4" style={{
+                            transition: 'opacity 220ms ease, transform 220ms ease',
+                            opacity: viewAnim === 'in' ? 1 : 0,
+                            transform: viewAnim === 'in' ? 'translateY(0)' : 'translateY(8px)',
+                            willChange: 'opacity, transform'
+                        }}>
                             <div className="mb-3">
-                                <TextBox placeholder="Current Password" type="password" value={passwords.current} setValue={(v) => setPasswords({ ...passwords, current: v })} />
+                                <TextBox placeholder="Current Password" type="password" value={passwords.current} setValue={(v) => setPasswords({ ...passwords, current: v })} onEnter={handlePasswordSave} />
                             </div>
                             <div className="mb-3">
-                                <TextBox placeholder="New Password" type="password" value={passwords.new} setValue={(v) => setPasswords({ ...passwords, new: v })} />
+                                <TextBox placeholder="New Password" type="password" value={passwords.new} setValue={(v) => setPasswords({ ...passwords, new: v })} onEnter={handlePasswordSave} />
                             </div>
                             <div className="mb-3">
-                                <TextBox placeholder="Confirm Password" type="password" value={passwords.confirm} setValue={(v) => setPasswords({ ...passwords, confirm: v })} />
+                                <TextBox placeholder="Confirm Password" type="password" value={passwords.confirm} setValue={(v) => setPasswords({ ...passwords, confirm: v })} onEnter={handlePasswordSave} />
                             </div>
                             <div className="d-flex justify-content-center gap-3 mt-4 pb-3">
                                 <div style={{ width: "200px" }}>
-                                    <Button content="CANCEL" color="danger" onClick={() => {
-                                        setIsChangingPassword(false);
-                                        setPasswords({ current: "", new: "", confirm: "" });
-                                    }} />
+                                    <Button content="CANCEL" color="danger" onClick={() => switchView(false)} />
                                 </div>
                                 <div style={{ width: "200px" }}>
                                     <Button content="SAVE" color="primary" onClick={handlePasswordSave} />

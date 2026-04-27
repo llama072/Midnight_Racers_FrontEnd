@@ -1,10 +1,14 @@
-export default function TextBox({ placeholder, type, value, setValue, readOnly = false }) {
+export default function TextBox({ placeholder, type, value, setValue, readOnly = false, onEnter }) {
+    const handleKeyDown = onEnter
+        ? (e) => { if (e.key === 'Enter') { e.preventDefault(); onEnter(); } }
+        : undefined;
     return (
         <input
             type={type}
             placeholder={placeholder}
             value={value}
             onChange={readOnly ? undefined : (e) => setValue(e.target.value)}
+            onKeyDown={handleKeyDown}
             readOnly={readOnly}
             className="form-control w-100"
             style={{
