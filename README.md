@@ -246,7 +246,7 @@ Játékos
 - email: TEST@gmail.com
 - jelszó : TESTTEST
 
-frontent deploy: [LINK](midnightracers.netlify.app)
+frontend deploy: [LINK](midnightracers.netlify.app)
 
 ---
 
