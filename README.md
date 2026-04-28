@@ -40,6 +40,14 @@ A frontend **React 19** + **Vite** alapokon készült, **Bootstrap 5** stílusoz
 - 🛠️ **Admin felület** — hírek és „home kártyák" inline szerkesztése
 - 📱 **Reszponzív dizájn** — desktopon és mobilon is működik
 
+## Prototípus 
+
+A fejlesztést megelőzte a prototípusnak a megtervezése, amely figmába készült el.
+
+<img width="1208" height="861" alt="image" src="https://github.com/user-attachments/assets/9dc2c01c-380f-4827-8841-e6a7e98f21f5" />
+
+[Figma link](https://www.figma.com/design/W1gTpY9bXcTfegPG5EcECe/Midnight-Racers?node-id=0-1&t=4xlKy7RKp3YKVYh2-1)
+
 ## 🖼️ Képernyőképek
 
 <table>
@@ -84,6 +92,12 @@ A frontend **React 19** + **Vite** alapokon készült, **Bootstrap 5** stílusoz
     </td>
   </tr>
 </table>
+
+## Mobilbarát reszponzív nézzet
+
+<img width="2728" height="1500" alt="Group 1 (1)" src="https://github.com/user-attachments/assets/bfb95430-321a-47f8-91c8-72fd1d393dcb" />
+
+
 
 ## 🛠️ Használt technológiák
 
@@ -221,6 +235,19 @@ A weboldal stílusa a játék pixel art esztétikájához igazodik:
 | [**Pap Teofil**](https://github.com/llama072) | Mindenes |
 | [**Földi Márk**](https://github.com/Bomba343) | Mindenes |
 
+
+## Teszt Felhasználók
+
+Admin
+- email: admin@admin.com
+- jelszó : adminadmin
+
+Játékos
+- email: TEST@gmail.com
+- jelszó : TESTTEST
+
+frontent deploy: [LINK](midnightracers.netlify.app)
+
 ---
 
 <div align="center">
@@ -230,3 +257,6 @@ Made with ❤️ and 🏁 by the **Midnight Racers** team
 *„Select your destiny."*
 
 </div>
+
+
+
